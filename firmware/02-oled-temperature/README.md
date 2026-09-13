@@ -57,11 +57,7 @@ The firmware was tested on an STM32F446RE with a DS18B20 temperature sensor conn
 
 Temperature data is transmitted through USART2 and can be monitored using a serial terminal such as PuTTY at 115200 baud, 8-N-1.
 
-A live PuTTY output screenshot can be added as:
-
-```text
-images/02-putty-temperature-output.png
-```
+![PuTTY live temperature output](images/02-putty-temperature-output.png)
 
 ## Verification
 
