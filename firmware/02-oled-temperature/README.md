@@ -1,5 +1,54 @@
-# STM32F446RE OLED + Temperature Monitoring
+# STM32F446RE DS18B20 Temperature Monitoring
 
-This experiment interfaces a temperature sensor with the STM32F446RE and displays the measured temperature on an I2C OLED display.
+Bare-metal STM32F446RE firmware for reading temperature from a DS18B20 digital temperature sensor using a 1-Wire interface and sending the measured value through USART2.
 
-The working firmware, hardware photograph, and test details will be added as the experiment is documented.
+## Hardware
+
+- STM32F446RE NUCLEO board
+- DS18B20 temperature sensor
+- 4.7 kΩ pull-up resistor on the DS18B20 data line
+- USB connection for serial monitoring
+
+## Pin Connections
+
+| Device | STM32F446RE |
+|---|---|
+| DS18B20 DATA | PA6 |
+| DS18B20 VCC | 3.3 V |
+| DS18B20 GND | GND |
+| USART2 TX | PA2 |
+
+## Firmware
+
+- MCU clock: 16 MHz HSI
+- DS18B20 interface: 1-Wire bit-banging
+- Temperature resolution: 12-bit
+- USART2: 115200 baud, 8-N-1
+- Delay source: SysTick
+- Register-level bare-metal C
+- No HAL or external sensor library
+
+## Serial Output
+
+The firmware reports the measured temperature once per second:
+
+```text
+================================
+STM32F446RE DS18B20 MONITOR
+UART2: 115200 8N1
+DS18B20: PA6
+================================
+Temperature: 28.1 C
+```
+
+If the sensor is not detected, the firmware reports:
+
+```text
+DS18B20 not detected!
+```
+
+## Verification
+
+The firmware was tested on STM32F446RE hardware with a DS18B20 sensor and verified through a serial terminal using USART2.
+
+Hardware and serial-output photographs will be added to the `images/` directory.
