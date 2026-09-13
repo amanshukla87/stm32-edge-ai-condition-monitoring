@@ -47,8 +47,22 @@ If the sensor is not detected, the firmware reports:
 DS18B20 not detected!
 ```
 
+## Hardware Verification
+
+The firmware was tested on an STM32F446RE with a DS18B20 temperature sensor connected to PA6. The hardware setup is shown below.
+
+![STM32F446RE and DS18B20 hardware setup](images/01-stm32-ds18b20-hardware.jpeg)
+
+## Serial Monitoring
+
+Temperature data is transmitted through USART2 and can be monitored using a serial terminal such as PuTTY at 115200 baud, 8-N-1.
+
+A live PuTTY output screenshot can be added as:
+
+```text
+images/02-putty-temperature-output.png
+```
+
 ## Verification
 
-The firmware was tested on STM32F446RE hardware with a DS18B20 sensor and verified through a serial terminal using USART2.
-
-Hardware and serial-output photographs will be added to the `images/` directory.
+The temperature reading was verified on physical STM32F446RE hardware through the DS18B20 sensor and USART2 serial output.
