@@ -129,11 +129,22 @@ Detailed bring-up notes are documented in `firmware/MPU6050.md`.
 
 ## Planned Edge AI Workflow
 
-The project is intended to progress toward a lightweight Edge AI workflow:
+The project is planned to evolve from validated multisensor acquisition toward a lightweight **Edge AI condition-monitoring pipeline**. The intended workflow is:
 
 ![Edge AI Pipeline](./images/edge_ai_pipeline_flowchart.png)
 
-This is the planned development path. **Edge AI deployment and on-device inference are not currently claimed as completed.**
+### Pipeline Stages
+
+1. **Sensor Data** — Acquire temperature, electrical, and motion/vibration measurements from the connected sensors.
+2. **Data Collection** — Capture and organize sensor measurements for analysis and model development.
+3. **Preprocessing** — Clean, synchronize, normalize, and prepare the acquired data.
+4. **Feature Extraction** — Derive relevant time-domain and frequency-domain features from the processed sensor signals.
+5. **Model Development** — Train and evaluate a lightweight machine-learning model using representative condition-monitoring data.
+6. **Model Optimization** — Reduce model size and computational requirements for resource-constrained embedded deployment.
+7. **STM32 Deployment** — Convert and integrate the optimized model for execution on the target STM32 platform.
+8. **On-Device Inference** — Run inference locally on the STM32 and use the model output for condition-monitoring decisions.
+
+This workflow represents the **planned development path**. Model training, optimization, STM32 deployment, and on-device Edge AI inference are **not currently claimed as completed features**.
 
 ## Future Hardware / Communication Work
 
