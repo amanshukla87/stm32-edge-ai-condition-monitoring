@@ -66,27 +66,52 @@ The current implementation is focused on reliable sensor/peripheral interfacing 
 
 ## Current Hardware Architecture
 
-```text
-             STM32 NUCLEO-F446RE
-                     |
-        +------------+------------+
-        |            |            |
-     DS18B20       INA219      SSD1306
-   Temperature   Electrical      OLED
-        |        Monitoring        |
-        |            |             |
-        +------------+-------------+
-                     |
-              Status / Alerts
-                |        |
-              LED      Buzzer
-                     |
-              Serial Output
-                     |
-                   PuTTY
+The current system is organized around the **STM32 NUCLEO-F446RE**, which acquires sensor data, processes the measurements, provides local status indication, and sends monitoring data to a PC through the serial interface.
+
+### Validated Hardware Architecture
+
+```mermaid
+flowchart TB
+    MCU["STM32 NUCLEO-F446RE"]
+
+    TEMP["DS18B20<br/>Temperature"]
+    POWER["INA219<br/>Current / Voltage / Power"]
+    OLED["SSD1306 I2C OLED<br/>Local Display"]
+
+    STATUS["Status / Alert Control"]
+    LED["LED<br/>Visual Indication"]
+    BUZZER["Buzzer<br/>Audible Indication"]
+    SERIAL["Serial Output"]
+    PUTTY["PuTTY<br/>PC Monitoring"]
+
+    MCU --> TEMP
+    MCU --> POWER
+    MCU --> OLED
+    TEMP --> STATUS
+    POWER --> STATUS
+    STATUS --> LED
+    STATUS --> BUZZER
+    MCU --> SERIAL
+    SERIAL --> PUTTY
 ```
 
-The **MPU6050** will be added to this architecture after its STM32-side I2C integration is successfully tested.
+The architecture above represents the **currently validated STM32 hardware and monitoring path**. The STM32 NUCLEO-F446RE acts as the central controller for temperature sensing, electrical monitoring, local display, status indication, and serial data monitoring.
+
+### Planned Motion / Vibration Integration
+
+The **MPU6050** is the next sensor planned for integration. It will provide accelerometer and gyroscope measurements for the motion/vibration condition-monitoring stage.
+
+```mermaid
+flowchart LR
+    MPU["MPU6050<br/>Accelerometer / Gyroscope"]
+    I2C["STM32 I2C Interface"]
+    MCU["STM32 NUCLEO-F446RE"]
+
+    MPU -. "Planned integration" .-> I2C
+    I2C -.-> MCU
+```
+
+The MPU6050 is **not shown as part of the completed hardware path** until its STM32-side I2C integration is successfully tested and validated.
 
 ## MPU6050 Integration Status
 
