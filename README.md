@@ -164,6 +164,15 @@ They will be documented separately when actually integrated and tested.
 
 **Status: Ongoing — hardware bring-up and multisensor integration**
 
+### Current Hardware Setup
+
+The current prototype setup is shown below. It represents the ongoing STM32 hardware bring-up and multisensor monitoring stage of the project.
+
+![Current STM32 Hardware Setup](./firmware/05-ina219-power-monitoring/images/hardware-setup.jpeg)
+
+*Current STM32 NUCLEO-F446RE hardware setup used during multisensor monitoring development.*
+
+
 ### Current milestone
 
 **Completed working STM32 setup:**
