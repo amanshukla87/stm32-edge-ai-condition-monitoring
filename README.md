@@ -106,23 +106,7 @@ Detailed bring-up notes are documented in `firmware/MPU6050.md`.
 
 The project is intended to progress toward a lightweight Edge AI workflow:
 
-```text
-Sensor Data
-    ↓
-Data Collection
-    ↓
-Preprocessing
-    ↓
-Feature Extraction
-    ↓
-Model Development
-    ↓
-Model Optimization
-    ↓
-STM32 Deployment
-    ↓
-On-Device Inference
-```
+![Edge AI Pipeline](./images/edge_ai_pipeline_flowchart.png)
 
 This is the planned development path. **Edge AI deployment and on-device inference are not currently claimed as completed.**
 
