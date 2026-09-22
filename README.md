@@ -131,7 +131,27 @@ Detailed bring-up notes are documented in `firmware/MPU6050.md`.
 
 The project is planned to evolve from validated multisensor acquisition toward a lightweight **Edge AI condition-monitoring pipeline**. The intended workflow is:
 
-![Edge AI Pipeline](./images/edge_ai_pipeline_flowchart.png)
+### Planned Edge AI Pipeline
+
+```mermaid
+flowchart TB
+    SENSOR["Sensor Data"]
+    COLLECTION["Data Collection"]
+    PREPROCESS["Preprocessing"]
+    FEATURES["Feature Extraction"]
+    MODEL["Model Development"]
+    OPTIMIZE["Model Optimization"]
+    DEPLOY["STM32 Deployment"]
+    INFERENCE["On-Device Inference"]
+
+    SENSOR --> COLLECTION
+    COLLECTION --> PREPROCESS
+    PREPROCESS --> FEATURES
+    FEATURES --> MODEL
+    MODEL --> OPTIMIZE
+    OPTIMIZE --> DEPLOY
+    DEPLOY --> INFERENCE
+```
 
 ### Pipeline Stages
 
