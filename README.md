@@ -19,9 +19,9 @@ The repository documents the **actual validated development status** and does no
 | **STM32CubeIDE** | **v2.2.0** — STM32 project development, build, flash, and debugging |
 | **PuTTY** | Serial terminal for monitoring STM32 output |
 
-STM32CubeIDE is STMicroelectronics' integrated development environment for STM32 microcontrollers and supports the development, build, programming, and debugging workflow. citeturn0search1turn0search6
+STM32CubeIDE is STMicroelectronics' integrated development environment for STM32 microcontrollers and is used for project development, building, programming, and debugging.
 
-PuTTY is used as the PC-side serial terminal to observe data transmitted by the STM32 over the project's serial interface. The COM port and serial parameters depend on the actual board and firmware configuration. citeturn0search0turn0search13
+PuTTY is used as the PC-side serial terminal to monitor data transmitted by the STM32 over the project's serial interface. The COM port and serial parameters depend on the board and firmware configuration.
 
 ## Current Hardware Status
 
