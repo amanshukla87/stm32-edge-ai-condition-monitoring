@@ -6,6 +6,8 @@ This firmware experiment extends the STM32F446RE monitoring setup by combining D
 
 The system continuously monitors temperature, bus voltage, current, and calculated power. The measured values are also transmitted through USART2 for live monitoring using a serial terminal such as PuTTY.
 
+**Serial configuration:** USART2 at **115200 baud, 8-N-1**.
+
 ## Hardware
 
 - STM32 NUCLEO-F446RE
