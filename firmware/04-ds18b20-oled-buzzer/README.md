@@ -1,125 +1,217 @@
-# DS18B20 Temperature Monitoring with OLED and Buzzer
+# STM32F446RE DS18B20 + OLED + Buzzer Temperature Monitor
 
 ## Overview
 
-This project implements a bare-metal temperature monitoring system using the STM32F446RE and a DS18B20 digital temperature sensor.
+This firmware stage extends the DS18B20 + SSD1306 OLED temperature monitor by adding an **active buzzer temperature alert**.
 
-The measured temperature is displayed on a 0.96-inch SSD1306 OLED through I2C. An active buzzer provides a temperature alert when the measured temperature exceeds the threshold defined in the firmware.
+The system uses the **STM32F446RE** with register-level C programming:
+- **DS18B20** for digital temperature sensing over 1-Wire
+- **SSD1306 128x64 OLED** for local temperature display over I2C
+- **Active buzzer** for threshold-based temperature alert
+- **USART2** for serial monitoring through the PC
 
-The firmware is written in C using direct STM32F446RE register-level programming without the STM32 HAL.
+The firmware is written without the STM32 HAL or external sensor/display libraries.
+
+---
 
 ## Hardware
 
 - STM32 NUCLEO-F446RE
-- DS18B20 waterproof temperature sensor
-- 0.96-inch SSD1306 I2C OLED, 128x64, address `0x3C`
+- DS18B20 digital temperature sensor
+- 0.96-inch SSD1306 I2C OLED, 128x64
 - Active buzzer
-- 4.7 kΩ pull-up resistor for the DS18B20 data line
+- 4.7 kΩ pull-up resistor
 - Jumper wires
-- USB cable for board power and programming/debugging
+- USB connection for programming, debugging, and serial monitoring
+
+---
 
 ## Pin Connections
 
-| Component | STM32F446RE Pin | Connection / Function |
+| Component | STM32F446RE | Function |
 |---|---|---|
-| DS18B20 DATA | PA6 | 1-Wire data |
-| DS18B20 VCC | 3.3 V | Sensor supply |
-| DS18B20 GND | GND | Ground |
-| 4.7 kΩ resistor | PA6 to 3.3 V | 1-Wire pull-up |
-| OLED SCL | PB8 | I2C1 SCL |
-| OLED SDA | PB9 | I2C1 SDA |
-| OLED VCC | 3.3 V | Display supply |
-| OLED GND | GND | Ground |
-| Buzzer signal | PB0 | Digital output |
-| Buzzer GND | GND | Ground |
+| DS18B20 DATA | **PA6** | 1-Wire data |
+| DS18B20 VCC | **3.3 V** | Sensor supply |
+| DS18B20 GND | **GND** | Ground |
+| 4.7 kΩ resistor | **PA6 → 3.3 V** | 1-Wire pull-up |
+| OLED SCL | **PB8** | I2C1 SCL |
+| OLED SDA | **PB9** | I2C1 SDA |
+| OLED VCC | **3.3 V** | Display supply |
+| OLED GND | **GND** | Ground |
+| Buzzer signal | **PB0** | Digital output |
+| Buzzer GND | **GND** | Ground |
+| USART2 TX | **PA2** | Serial output |
 
-The OLED uses I2C1 with PB8 configured as SCL and PB9 configured as SDA using alternate function AF4.
+### OLED Configuration
 
-## System Operation
+- Controller: SSD1306
+- Resolution: 128 × 64
+- I2C address: `0x3C`
+- Interface: I2C1
+- SCL: PB8
+- SDA: PB9
+- Alternate function: AF4
+
+### Serial Configuration
+
+- Peripheral: USART2
+- TX: PA2
+- Baud rate: **115200**
+- Format: **8-N-1**
+
+On the NUCLEO-F446RE, serial output can be observed through the board's **ST-LINK Virtual COM Port** when connected/configured for VCP operation.
+
+---
+
+## System Architecture
 
 ```text
-              DS18B20
-                 │
-              1-Wire
-                 │ PA6
-                 ▼
-          STM32F446RE
-           │         │
-       I2C1 │         │ GPIO
-           │ PB8/PB9  │ PB0
-           ▼         ▼
-       SSD1306     Active
-        OLED       Buzzer
+                 DS18B20
+                    │
+                 1-Wire
+                    │ PA6
+                    ▼
+             ┌──────────────┐
+             │ STM32F446RE  │
+             │              │
+             │  Register-   │
+             │   level C    │
+             └──────┬───────┘
+                    │
+          ┌─────────┼─────────┐
+          │         │         │
+       I2C1       GPIO      USART2
+     PB8/PB9       PB0        PA2
+          │         │          │
+          ▼         ▼          ▼
+      SSD1306     Active     PC / PuTTY
+       OLED       Buzzer
 ```
 
-The STM32 performs the following sequence continuously:
+---
 
-1. Resets and communicates with the DS18B20 over the 1-Wire interface.
-2. Starts a temperature conversion.
-3. Reads the temperature value from the sensor.
-4. Converts the raw DS18B20 value to degrees Celsius.
-5. Displays the temperature on the SSD1306 OLED.
-6. Sends the temperature through USART2 for serial monitoring.
-7. Activates the buzzer when the programmed temperature threshold is exceeded.
+## Firmware Operation
+
+The main loop performs the following sequence:
+
+1. Reset and detect the DS18B20.
+2. Start a temperature conversion.
+3. Wait for the conversion to complete.
+4. Read the DS18B20 temperature register.
+5. Convert the raw sensor value to °C.
+6. Display the temperature on the SSD1306 OLED.
+7. Transmit the temperature through USART2.
+8. Compare the temperature with the programmed alert threshold.
+9. Turn the buzzer ON when the threshold is exceeded.
+10. Repeat the measurement cycle.
+
+A DS18B20 communication failure results in an `ERR` indication on the OLED and the buzzer is switched OFF.
+
+---
 
 ## Temperature Alert
 
 The current firmware uses a threshold of approximately **27 °C**.
 
-- Temperature above 27 °C → buzzer ON
-- Temperature at or below 27 °C → buzzer OFF
-- DS18B20 communication error → buzzer OFF and `ERR` displayed on the OLED
+| Condition | Buzzer |
+|---|---|
+| Temperature ≤ 27 °C | OFF |
+| Temperature > 27 °C | ON |
+| DS18B20 not detected | OFF |
 
-The threshold can be changed in the firmware according to the required application.
+The threshold is defined directly in the firmware and can be changed for testing or application requirements.
 
-## Serial Monitoring
+---
 
-The firmware initializes USART2 with:
+## OLED Display
 
-- TX: PA2
-- Baud rate: 115200
-- Data format: 8-N-1
-
-Temperature readings are transmitted as text in degrees Celsius. On the NUCLEO-F446RE, USART2 can be monitored through the ST-LINK virtual COM interface when the board's VCP connection is enabled.
-
-## Firmware Implementation
-
-The firmware contains register-level implementations for:
-
-- STM32F446RE GPIO configuration
-- SysTick-based microsecond delays
-- DS18B20 1-Wire communication
-- USART2 serial transmission
-- I2C1 communication
-- SSD1306 OLED control
-- Active buzzer control
-- Temperature threshold monitoring
-
-No STM32 HAL or external sensor/display library is used.
-
-## Expected Output
-
-During normal operation, the OLED displays the measured temperature, for example:
+During normal operation, the OLED displays the temperature in this format:
 
 ```text
 TEMP
+
 28.7 C
 ```
 
-When the temperature exceeds the programmed threshold, the active buzzer is enabled while the temperature continues to be displayed on the OLED.
+If the DS18B20 is not detected:
 
-## Hardware Setup
+```text
+TEMP
 
-The complete setup uses the STM32 NUCLEO-F446RE, DS18B20 temperature probe, SSD1306 OLED, active buzzer, 4.7 kΩ pull-up resistor, jumper wires, and USB connection to the development board.
+ERR
+```
 
-![STM32F446RE DS18B20 OLED and buzzer hardware setup](images/hardware-setup.jpg)
+---
 
-## Demonstration
+## Serial Output
 
-The `images` directory contains the live demonstration video of the temperature monitoring and buzzer operation.
+At startup, the firmware sends an identification message similar to:
 
-[Live Temperature and Buzzer Demonstration](images/live-temperature-buzzer-demo.mp4)
+```text
+================================
+STM32F446RE DS18B20 + OLED + Buzzer
+UART2: 115200 8N1
+DS18B20: PA6
+OLED: I2C1 PB8/PB9
+Buzzer: PB0
+================================
+```
+
+Normal temperature readings are then transmitted as:
+
+```text
+Temperature: 28.7 C
+```
+
+If the sensor is not detected:
+
+```text
+DS18B20 not detected!
+```
+
+---
+
+## Firmware Implementation
+
+The `main.c` file contains direct register-level implementations for:
+
+- GPIO configuration
+- SysTick-based microsecond delays
+- DS18B20 1-Wire reset/read/write operations
+- DS18B20 temperature conversion
+- USART2 serial transmission
+- I2C1 communication
+- SSD1306 initialization and display control
+- Temperature formatting
+- Active buzzer control
+- Temperature threshold detection
+- Sensor error handling
+
+No STM32 HAL or external sensor/display library is used.
+
+---
+
+## Project Status
+
+**Firmware stage:** DS18B20 + SSD1306 OLED + buzzer integration
+
+This folder represents an **incremental peripheral-integration stage** of the larger STM32 industrial condition-monitoring project.
+
+The firmware demonstrates temperature sensing, local display, serial monitoring, and threshold-based alerting. It is not yet the final multisensor Edge AI condition-monitoring firmware.
+
+Further stages can integrate additional sensors such as the MPU6050 and later combine multiple sensor streams for condition-monitoring and Edge AI processing.
+
+---
 
 ## Source Code
 
-[main.c](main.c) contains the complete bare-metal implementation for DS18B20 temperature sensing, SSD1306 OLED display, USART2 serial output, and buzzer control.
+- [`main.c`](main.c) — complete bare-metal firmware implementation
+- [`images/`](images/) — hardware/demo assets for this firmware stage
+
+## Related Project
+
+This firmware is part of:
+
+**STM32-Based Lightweight Edge AI for Multisensor Industrial Condition Monitoring**
+
+The complete project repository contains the hardware bring-up stages, firmware experiments, and planned Edge AI workflow.
