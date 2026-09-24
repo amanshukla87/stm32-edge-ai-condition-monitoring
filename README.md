@@ -21,7 +21,7 @@ The repository documents the **actual validated development status** and does no
 
 STM32CubeIDE is STMicroelectronics' integrated development environment for STM32 microcontrollers and is used for project development, building, programming, and debugging.
 
-PuTTY is used as the PC-side serial terminal to monitor data transmitted by the STM32 over the project's serial interface. The COM port and serial parameters depend on the board and firmware configuration.
+PuTTY is used as the PC-side serial terminal to monitor data transmitted by the STM32 over the project's serial interface. The current UART-based firmware uses **115200 baud, 8-N-1**. The COM port depends on the board's ST-LINK virtual COM interface and the connected PC.
 
 ## Current Hardware Status
 
