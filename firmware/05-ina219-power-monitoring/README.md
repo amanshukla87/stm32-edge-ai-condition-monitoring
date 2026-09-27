@@ -15,7 +15,8 @@ The system continuously monitors temperature, bus voltage, current, and calculat
 - DS18B20 waterproof temperature sensor
 - 0.96-inch SSD1306 I2C OLED display
 - Green LED
-- Resistor for the DS18B20 data line
+- **4.7 kΩ pull-up resistor for the DS18B20 data line**
+- **200 Ω resistor in series with the external LED**
 - Jumper wires
 - USB cable
 - Breadboard / prototyping connections
@@ -24,15 +25,19 @@ The system continuously monitors temperature, bus voltage, current, and calculat
 
 | Device | STM32F446RE Pin | Interface / Function |
 |---|---|---|
-| DS18B20 DATA | PA6 | 1-Wire temperature interface |
+| DS18B20 DATA | PA6 | 1-Wire temperature interface with **4.7 kΩ pull-up** |
 | OLED SCL | PB8 | I2C1 SCL |
 | OLED SDA | PB9 | I2C1 SDA |
 | INA219 SCL | PB8 | I2C1 SCL |
 | INA219 SDA | PB9 | I2C1 SDA |
 | UART TX | PA2 | USART2 serial output |
-| Green LED | GPIO output | Status indication |
+| Green LED | GPIO output | Status indication through **200 Ω series resistor** |
 
-The OLED and INA219 share the STM32F446RE I2C1 bus through PB8 (SCL) and PB9 (SDA). The DS18B20 uses a dedicated 1-Wire connection on PA6 with an external pull-up resistor on the data line.
+The OLED and INA219 share the STM32F446RE I2C1 bus through PB8 (SCL) and PB9 (SDA).
+
+The **DS18B20 uses a dedicated 1-Wire connection on PA6 with a 4.7 kΩ external pull-up resistor on the data line**.
+
+The **external LED uses a 200 Ω resistor in series with the LED** for current limiting.
 
 ## Measurements
 
