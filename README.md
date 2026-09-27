@@ -36,7 +36,7 @@ The STM32 setup has been tested progressively with:
 - **INA219** — bus voltage, current and power measurement
 - **SSD1306 0.96-inch 128×64 OLED** — local display
 - **Buzzer** — audible indication
-- **LED + 220 Ω resistor** — visual indication
+- **LED + 200 Ω resistor** — visual indication
 - **MPU6050** — accelerometer and gyroscope data
 - **PuTTY** — serial monitoring
 
@@ -50,13 +50,15 @@ The MPU6050 is connected through **I2C1** and uses address **0x68**.
 
 | Device | Interface | STM32 connection / address |
 |---|---|---|
-| DS18B20 | 1-Wire | PA6 |
+| DS18B20 | 1-Wire | PA6, with **4.7 kΩ pull-up resistor** |
 | INA219 | I2C | 0x40 |
 | SSD1306 OLED | I2C | 0x3C, PB8/PB9 |
 | MPU6050 | I2C | 0x68, PB8/PB9 |
 | Buzzer | GPIO | PB0 |
-| External LED | GPIO | PA5 through 220 Ω |
+| External LED | GPIO | PA5 through **200 Ω resistor** |
 | Serial monitoring | UART | USART2 / PuTTY |
+
+The **4.7 kΩ pull-up resistor is used on the DS18B20 data line**, while the **200 Ω resistor is used in series with the external LED**.
 
 The I2C devices share the STM32 I2C1 bus on **PB8 (SCL)** and **PB9 (SDA)**.
 
