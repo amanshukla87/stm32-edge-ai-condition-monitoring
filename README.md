@@ -62,6 +62,14 @@ The **4.7 kΩ pull-up resistor is used on the DS18B20 data line**, while the **2
 
 The I2C devices share the STM32 I2C1 bus on **PB8 (SCL)** and **PB9 (SDA)**.
 
+## Latest MPU6050 Motion Testing
+
+After the initial MPU6050 integration, the sensor was also tested by changing its physical orientation and observing the accelerometer and gyroscope values through the STM32 firmware.
+
+The current work verifies **raw motion/orientation data**, including sideways tilting, using the same STM32 + OLED + UART setup. At this stage, the firmware reports raw accelerometer and gyroscope readings; a calculated tilt angle is **not yet implemented**.
+
+This keeps the current result separate from the planned motion-feature processing stage.
+
 ## MPU6050 Integration
 
 The MPU6050 was first checked independently and then integrated into the STM32 firmware.
@@ -149,7 +157,7 @@ firmware/
 └── 06-mpu6050-motion-sensor/
 ```
 
-The **06-mpu6050-motion-sensor** folder contains the current integrated firmware and MPU6050-specific documentation and test material.
+The **06-mpu6050-motion-sensor** folder contains the current integrated firmware and MPU6050 motion-testing work.
 
 ## Current Project Status
 
@@ -165,6 +173,7 @@ The **06-mpu6050-motion-sensor** folder contains the current integrated firmware
 - UART monitoring through PuTTY
 - MPU6050 I2C integration
 - MPU6050 accelerometer and gyroscope data reading
+- Physical orientation / sideways tilt testing using raw sensor data
 - Combined DS18B20 + INA219 + MPU6050 monitoring in the current STM32 firmware
 
 ### Not yet completed
