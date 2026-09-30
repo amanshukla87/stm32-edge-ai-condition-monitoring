@@ -1,23 +1,42 @@
 # STM32F446RE Register-Level LED Blink
 
+A minimal STM32F446RE GPIO example using direct register-level programming without STM32 HAL.
+
 ## Objective
 
-Configure **PA5** of the STM32F446RE as a GPIO output and blink an external LED using direct register-level programming.
+Configure **PA5** of the STM32F446RE as a GPIO output and blink an external LED using direct register access.
 
 ## Hardware
 
 - STM32 NUCLEO-F446RE
 - External LED
-- 220 Ω resistor
+- Current-limiting resistor
 - Breadboard
 - Jumper wires
 
 ## Connections
 
-| STM32 | Component |
+| STM32F446RE | Component |
 |---|---|
-| PA5 | LED anode through 220 Ω resistor |
+| PA5 | LED anode through current-limiting resistor |
 | GND | LED cathode |
+
+## Firmware Structure
+
+```text
+01-gpio-led-blink/
+├── main.c
+├── gpio.c
+├── gpio.h
+├── README.md
+└── circuit-diagram.png
+```
+
+### File responsibilities
+
+- **main.c** — application flow and software delay.
+- **gpio.c** — STM32F446RE GPIOA register configuration and PA5 control.
+- **gpio.h** — public GPIO interface used by `main.c`.
 
 ## Circuit Diagram
 
@@ -31,19 +50,19 @@ Configure **PA5** of the STM32F446RE as a GPIO output and blink an external LED 
 
 ## Working
 
-1. Enable the GPIOA clock through `RCC_AHB1ENR`.
-2. Configure PA5 as a general-purpose output using `GPIOA_MODER`.
+1. Enable the GPIOA peripheral clock through `RCC_AHB1ENR`.
+2. Configure PA5 as a general-purpose output through `GPIOA_MODER`.
 3. Toggle PA5 through `GPIOA_ODR`.
-4. Use a software delay between state changes.
+4. Apply a simple software delay between state changes.
 
 ## Programming Approach
 
-This experiment uses **direct register-level programming without STM32 HAL**.
+This example uses **direct register-level programming without STM32 HAL**. The GPIO register definitions and driver functions are kept separate from the application logic so that `main.c` remains focused on the program flow.
 
 ## Result
 
 The external LED connected to **PA5** blinks continuously.
 
-## Media
+## Note
 
-Hardware photographs and the working demonstration video will be added as the experiment is documented.
+The software delay is intentionally simple and is used only for this introductory register-level GPIO demonstration. It is not intended as a precise timing mechanism.
