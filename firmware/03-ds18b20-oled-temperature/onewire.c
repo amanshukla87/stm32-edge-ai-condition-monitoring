@@ -1,58 +1,19 @@
 #include "onewire.h"
 #include "delay.h"
-
-#define RCC_AHB1ENR (*(volatile uint32_t *)(0x40023800U + 0x30U))
-#define GPIOA_MODER (*(volatile uint32_t *)(0x40020000U + 0x00U))
-#define GPIOA_OTYPER (*(volatile uint32_t *)(0x40020000U + 0x04U))
-#define GPIOA_IDR (*(volatile uint32_t *)(0x40020000U + 0x10U))
-#define GPIOA_ODR (*(volatile uint32_t *)(0x40020000U + 0x14U))
-#define PIN 6U
-#define MASK (1U << PIN)
-
-static void output_mode(void)
-{
-    GPIOA_MODER &= ~(3U << (PIN * 2U));
-    GPIOA_MODER |= (1U << (PIN * 2U));
-    GPIOA_OTYPER |= MASK;
-}
-static void input_mode(void) { GPIOA_MODER &= ~(3U << (PIN * 2U)); }
-static void low(void) { output_mode(); GPIOA_ODR &= ~MASK; }
-static void release(void) { input_mode(); }
-static uint8_t read_pin(void) { return (GPIOA_IDR & MASK) ? 1U : 0U; }
-
-void onewire_init(void)
-{
-    RCC_AHB1ENR |= (1U << 0);
-    release();
-}
-uint8_t onewire_reset(void)
-{
-    uint8_t presence;
-    low(); delay_us(480U); release(); delay_us(70U);
-    presence = (read_pin() == 0U) ? 1U : 0U;
-    delay_us(410U);
-    return presence;
-}
-static void write_bit(uint8_t bit)
-{
-    low();
-    if (bit) { delay_us(6U); release(); delay_us(64U); }
-    else { delay_us(60U); release(); delay_us(10U); }
-}
-static uint8_t read_bit(void)
-{
-    uint8_t bit;
-    low(); delay_us(2U); release(); delay_us(10U);
-    bit = read_pin(); delay_us(50U);
-    return bit;
-}
-void onewire_write_byte(uint8_t data)
-{
-    for (uint8_t i = 0U; i < 8U; i++) { write_bit(data & 1U); data >>= 1; }
-}
-uint8_t onewire_read_byte(void)
-{
-    uint8_t data = 0U;
-    for (uint8_t i = 0U; i < 8U; i++) if (read_bit()) data |= (1U << i);
-    return data;
-}
+#define RCC_AHB1ENR (*(volatile uint32_t *)(0x40023800U+0x30U))
+#define MODER (*(volatile uint32_t *)(0x40020000U+0x00U))
+#define OTYPER (*(volatile uint32_t *)(0x40020000U+0x04U))
+#define IDR (*(volatile uint32_t *)(0x40020000U+0x10U))
+#define ODR (*(volatile uint32_t *)(0x40020000U+0x14U))
+#define MASK (1U<<6)
+static void out(void){MODER&=~(3U<<12);MODER|=(1U<<12);OTYPER|=MASK;}
+static void in(void){MODER&=~(3U<<12);}
+static void low(void){out();ODR&=~MASK;}
+static void rel(void){in();}
+static uint8_t pin(void){return(IDR&MASK)?1U:0U;}
+void onewire_init(void){RCC_AHB1ENR|=1U;rel();}
+uint8_t onewire_reset(void){uint8_t p;low();delay_us(480);rel();delay_us(70);p=(pin()==0U);delay_us(410);return p;}
+static void wb(uint8_t b){low();if(b){delay_us(6);rel();delay_us(64);}else{delay_us(60);rel();delay_us(10);}}
+static uint8_t rb(void){uint8_t b;low();delay_us(2);rel();delay_us(10);b=pin();delay_us(50);return b;}
+void onewire_write_byte(uint8_t d){for(uint8_t i=0;i<8;i++){wb(d&1U);d>>=1;}}
+uint8_t onewire_read_byte(void){uint8_t d=0;for(uint8_t i=0;i<8;i++)if(rb())d|=1U<<i;return d;}
