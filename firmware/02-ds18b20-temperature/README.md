@@ -1,6 +1,10 @@
 # STM32F446RE DS18B20 Temperature Monitoring
 
-Bare-metal firmware for reading temperature from a **DS18B20** digital temperature sensor over the 1-Wire interface and displaying the measured value through USART2.
+Bare-metal STM32F446RE firmware for reading temperature from a **DS18B20** digital sensor over a 1-Wire interface and reporting the result through USART2.
+
+## Objective
+
+Demonstrate a small, modular embedded firmware application using direct register-level programming without STM32 HAL or an external sensor library.
 
 ## Hardware
 
@@ -18,14 +22,41 @@ Bare-metal firmware for reading temperature from a **DS18B20** digital temperatu
 | DS18B20 GND | GND |
 | USART2 TX | PA2 |
 
-## Firmware
+## Firmware Structure
+
+```text
+02-ds18b20-temperature/
+├── main.c
+├── delay.c
+├── delay.h
+├── onewire.c
+├── onewire.h
+├── ds18b20.c
+├── ds18b20.h
+├── uart.c
+├── uart.h
+└── README.md
+```
+
+### Module responsibilities
+
+- **main.c** — application flow and periodic temperature monitoring.
+- **delay.c / delay.h** — SysTick-based microsecond timing.
+- **onewire.c / onewire.h** — low-level 1-Wire bus transactions on PA6.
+- **ds18b20.c / ds18b20.h** — DS18B20 commands and temperature conversion.
+- **uart.c / uart.h** — USART2 initialization and serial output formatting.
+
+This keeps hardware-specific protocol code out of `main.c` while retaining a simple, readable application layer.
+
+## Firmware Features
 
 - 1-Wire communication using GPIO bit-banging
-- 12-bit temperature resolution
+- DS18B20 temperature conversion at 12-bit resolution
 - USART2 at 115200 baud, 8-N-1
-- SysTick-based timing
+- SysTick-based microsecond timing
 - Direct register-level C
 - No STM32 HAL or external sensor library
+- Sensor-not-detected handling
 
 ## Serial Output
 
@@ -58,6 +89,6 @@ Temperature readings are monitored through **USART2** using PuTTY at **115200 ba
 
 ![PuTTY live temperature output](images/02-putty-temperature-output.png)
 
-## Verification
+## Design Note
 
-The temperature reading was verified on physical STM32F446RE hardware using the DS18B20 sensor and USART2 serial output.
+The firmware is intentionally kept at register level to expose the STM32 peripheral configuration and 1-Wire timing. The module boundaries are based on actual responsibilities rather than creating a separate file for every small function.
