@@ -11,7 +11,9 @@
 
 static uint8_t write_register(uint8_t reg, uint16_t value)
 {
-    if (!i2c1_start()) return 0U;
+    if (!i2c1_start())
+        return 0U;
+
     if (!i2c1_address((INA219_ADDRESS << 1) | 0U))
     {
         i2c1_stop();
@@ -34,30 +36,28 @@ static uint8_t read_register(uint8_t reg, uint16_t *value)
 {
     uint8_t high;
     uint8_t low;
-    uint32_t timeout = 100000U;
 
-    if (!i2c1_start()) return 0U;
-    if (!i2c1_address((INA219_ADDRESS << 1) | 0U))
+    if (!i2c1_read_register_2bytes(
+            INA219_ADDRESS, reg, &high, &low))
     {
-        i2c1_stop();
         return 0U;
     }
 
-    if (!i2c1_write(reg))
-    {
-        i2c1_stop();
-        return 0U;
-    }
-
-    /* Repeated START for the read transaction. */
-    I2C1_CR1_PLACEHOLDER;
-    return 0U;
+    *value = ((uint16_t)high << 8) | low;
+    return 1U;
 }
 
 uint8_t ina219_init(void)
 {
-    return write_register(REG_CALIB, 4096U) &&
-           write_register(REG_CONFIG, 0x399FU);
+    /* 0.1 ohm shunt, 100 uA/bit current LSB. */
+    if (!write_register(REG_CALIB, 4096U))
+        return 0U;
+
+    /* 32 V range, /8 PGA, 12-bit ADC, continuous bus + shunt. */
+    if (!write_register(REG_CONFIG, 0x399FU))
+        return 0U;
+
+    return 1U;
 }
 
 uint8_t ina219_read_measurements(INA219_Measurements *m)
@@ -65,21 +65,29 @@ uint8_t ina219_read_measurements(INA219_Measurements *m)
     uint16_t raw;
     int16_t signed_raw;
 
-    if (!read_register(REG_BUS, &raw)) return 0U;
+    if (!read_register(REG_BUS, &raw))
+        return 0U;
+
     raw >>= 3;
     m->bus_voltage_mV = (uint32_t)raw * 4U;
 
-    if (!read_register(REG_SHUNT, &raw)) return 0U;
+    if (!read_register(REG_SHUNT, &raw))
+        return 0U;
+
     signed_raw = (int16_t)raw;
     m->shunt_voltage_uV = (int32_t)signed_raw * 10;
 
-    if (!read_register(REG_CURRENT, &raw)) return 0U;
+    if (!read_register(REG_CURRENT, &raw))
+        return 0U;
+
     signed_raw = (int16_t)raw;
     m->current_mA = (signed_raw >= 0) ?
                     ((int32_t)signed_raw + 5) / 10 :
                     ((int32_t)signed_raw - 5) / 10;
 
-    if (!read_register(REG_POWER, &raw)) return 0U;
+    if (!read_register(REG_POWER, &raw))
+        return 0U;
+
     m->power_mW = (uint32_t)raw * 2U;
 
     return 1U;
