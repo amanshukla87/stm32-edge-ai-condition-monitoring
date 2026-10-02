@@ -2,96 +2,127 @@
 
 ## Overview
 
-This firmware experiment extends the STM32F446RE monitoring setup by combining DS18B20 temperature measurement with INA219 electrical measurements over I2C.
+This firmware experiment combines DS18B20 temperature sensing with INA219 electrical monitoring on the STM32F446RE.
 
-The system continuously monitors temperature, bus voltage, current, and calculated power. The measured values are also transmitted through USART2 for live monitoring using a serial terminal such as PuTTY.
+The STM32 reads:
+- Temperature from the DS18B20
+- Bus voltage from the INA219
+- Load current from the INA219
+- Calculated power from the INA219
 
-**Serial configuration:** USART2 at **115200 baud, 8-N-1**.
+The values are displayed on the SSD1306 OLED and transmitted through USART2 for serial monitoring.
+
+The implementation uses direct STM32F446RE register access rather than HAL.
 
 ## Hardware
 
 - STM32 NUCLEO-F446RE
-- INA219 current and power monitoring module
-- DS18B20 waterproof temperature sensor
-- 0.96-inch SSD1306 I2C OLED display
+- INA219 current/power monitoring module
+- DS18B20 temperature sensor
+- 0.96-inch SSD1306 I2C OLED, 128x64
+- Piezo buzzer
 - Green LED
-- **4.7 kΩ pull-up resistor for the DS18B20 data line**
-- **200 Ω resistor in series with the external LED**
-- Jumper wires
+- 200 ohm resistor for the external LED
+- 4.7 kOhm pull-up resistor for the DS18B20 data line
+- Breadboard and jumper wires
 - USB cable
-- Breadboard / prototyping connections
 
-## Interfaces
+## Pin Configuration
 
-| Device | STM32F446RE Pin | Interface / Function |
+| Device | STM32F446RE | Function |
 |---|---|---|
-| DS18B20 DATA | PA6 | 1-Wire temperature interface with **4.7 kΩ pull-up** |
-| OLED SCL | PB8 | I2C1 SCL |
-| OLED SDA | PB9 | I2C1 SDA |
+| DS18B20 DATA | PA6 | 1-Wire data |
 | INA219 SCL | PB8 | I2C1 SCL |
 | INA219 SDA | PB9 | I2C1 SDA |
-| UART TX | PA2 | USART2 serial output |
-| Green LED | GPIO output | Status indication through **200 Ω series resistor** |
+| OLED SCL | PB8 | I2C1 SCL |
+| OLED SDA | PB9 | I2C1 SDA |
+| USART2 TX | PA2 | Serial output |
+| Buzzer | PB0 | Temperature alert |
+| External LED | GPIO output | Status/load indication |
 
-The OLED and INA219 share the STM32F446RE I2C1 bus through PB8 (SCL) and PB9 (SDA).
+The DS18B20 data line uses a 4.7 kOhm pull-up. The INA219 and OLED share the same I2C1 bus.
 
-The **DS18B20 uses a dedicated 1-Wire connection on PA6 with a 4.7 kΩ external pull-up resistor on the data line**.
+## INA219 Configuration
 
-The **external LED uses a 200 Ω resistor in series with the LED** for current limiting.
+- I2C address: 0x40
+- Shunt resistor: 0.1 ohm
+- Calibration register: 4096
+- Current LSB: 100 uA/bit
+- Bus voltage range: 32 V
+- Shunt PGA: /8
+- ADC: 12-bit
+- Conversion mode: continuous bus and shunt measurement
 
-## Measurements
+The driver reads the INA219 bus-voltage, shunt-voltage, current, and power registers and converts them into engineering units.
 
-The INA219 provides:
+## Test Load
 
-- Bus voltage
-- Load current
-- Power calculated from the measured electrical parameters
+The INA219 was tested with a simple low-voltage LED load:
 
-The DS18B20 provides the temperature measurement.
+5 V Supply -> INA219 VIN+ -> INA219 Shunt -> INA219 VIN- -> 220 ohm -> LED -> GND
 
-## Example Serial Output
+The INA219 logic interface is connected to the STM32 at 3.3 V, GND, PB8 (SCL), and PB9 (SDA).
 
-```text
+## Temperature Alert
+
+The firmware uses a project-level temperature threshold of approximately 30 deg C.
+
+- Below 30 deg C: buzzer OFF
+- At or above 30 deg C: buzzer ON
+
+This is an application threshold for the demonstration, not a safety limit.
+
+## Serial Monitoring
+
+USART2 is configured for 115200 baud, 8-N-1.
+
+Example output format:
+
 Temperature: 28.6 C
 INA219:
 Bus Voltage: 3.27 V
 Current: 0.023 A
 Power: 0.076 W
---------------------
-```
+-------------------------
 
-The values above are representative of the observed output during the hardware test and are included to document the demonstrated measurement format.
+The example values illustrate the output format and are not fixed expected measurements.
+
+## Firmware Structure
+
+05-ina219-power-monitoring/
+├── main.c
+├── delay.c / delay.h
+├── onewire.c / onewire.h
+├── ds18b20.c / ds18b20.h
+├── i2c.c / i2c.h
+├── ina219.c / ina219.h
+├── oled.c / oled.h
+├── uart.c / uart.h
+├── buzzer.c / buzzer.h
+├── images/
+├── video/
+└── README.md
+
+### Module responsibilities
+
+- main.c — application flow and sensor coordination
+- delay.c/.h — SysTick-based timing
+- onewire.c/.h — 1-Wire communication on PA6
+- ds18b20.c/.h — DS18B20 temperature conversion and reading
+- i2c.c/.h — STM32F446RE I2C1 communication on PB8/PB9
+- ina219.c/.h — INA219 register configuration and measurement conversion
+- oled.c/.h — SSD1306 display handling
+- uart.c/.h — USART2 serial output
+- buzzer.c/.h — PB0 buzzer control
 
 ## System Flow
 
-```text
-DS18B20 ──1-Wire──> STM32F446RE
-                       │
-                       ├── I2C1 ──> SSD1306 OLED
-                       │
-                       ├── I2C1 ──> INA219
-                       │
-                       └── USART2 ──> PuTTY
-```
+DS18B20 (PA6) -> STM32F446RE -> I2C1 (PB8/PB9) -> INA219 + SSD1306 OLED
+STM32F446RE -> USART2 PA2 -> PuTTY
+STM32F446RE -> PB0 -> Buzzer
 
-## Firmware
+## Notes
 
-The implementation uses direct STM32F446RE peripheral register access for the GPIO, I2C, USART, and timing functions required by the monitoring system.
-
-The firmware performs continuous temperature and electrical monitoring and reports the measured values through the configured serial interface.
-
-## Project Files
-
-```text
-05-ina219-power-monitoring/
-├── main.c
-├── README.md
-├── images/
-│   ├── hardware-setup.jpg
-│   ├── putty-output.jpg
-│   └── circuit-diagram.jpg
-└── video/
-    └── live-ina219-temperature-monitoring.mp4
-```
-
-The image and video files document the actual hardware setup, circuit, serial output, and live operation of the system.
+- The INA219 driver is implemented specifically for the 0.1 ohm shunt and calibration value used in this experiment.
+- The OLED and INA219 share I2C1.
+- The project is intentionally kept at register level to demonstrate STM32 peripheral configuration and sensor communication.
