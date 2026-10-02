@@ -101,17 +101,67 @@ uint8_t i2c1_write(uint8_t data)
     return 1U;
 }
 
-uint8_t i2c1_read_2bytes(uint8_t *high, uint8_t *low)
+uint8_t i2c1_read_register_2bytes(uint8_t address, uint8_t reg,
+                                  uint8_t *high, uint8_t *low)
 {
     uint32_t timeout = 100000U;
 
+    if (!i2c1_start())
+        return 0U;
+
+    if (!i2c1_address((uint8_t)(address << 1)))
+    {
+        i2c1_stop();
+        return 0U;
+    }
+
+    if (!i2c1_write(reg))
+    {
+        i2c1_stop();
+        return 0U;
+    }
+
+    /* Repeated START and read address. */
+    CR1 |= (1U << 8);
+
+    timeout = 100000U;
+    while ((SR1 & (1U << 0)) == 0U)
+        if (--timeout == 0U)
+        {
+            i2c1_stop();
+            return 0U;
+        }
+
+    DR = (uint8_t)((address << 1) | 1U);
+
+    timeout = 100000U;
+    while ((SR1 & ((1U << 1) | (1U << 10))) == 0U)
+        if (--timeout == 0U)
+        {
+            i2c1_stop();
+            return 0U;
+        }
+
+    if (SR1 & (1U << 10))
+    {
+        SR1 &= ~(1U << 10);
+        i2c1_stop();
+        return 0U;
+    }
+
+    /* Two-byte receive sequence for STM32F4. */
     CR1 |= (1U << 10);
     (void)SR1;
     (void)SR2;
 
     timeout = 100000U;
     while ((SR1 & (1U << 2)) == 0U)
-        if (--timeout == 0U) return 0U;
+        if (--timeout == 0U)
+        {
+            CR1 &= ~(1U << 10);
+            i2c1_stop();
+            return 0U;
+        }
 
     CR1 &= ~(1U << 10);
     CR1 |= (1U << 9);
