@@ -2,69 +2,32 @@
 
 ## Purpose
 
-This stage integrates an MPU6050 motion sensor with the STM32 NUCLEO-F446RE as part of the multisensor industrial monitoring system.
+This stage integrates the **MPU6050** motion sensor with the **STM32 NUCLEO-F446RE** as part of the multisensor industrial monitoring system.
 
-The MPU6050 provides:
+The firmware reads:
 - 3-axis accelerometer data
 - 3-axis gyroscope data
-- Internal temperature sensor raw output
+- MPU6050 internal temperature raw data
 
-The sensor data is read through I2C and verified on both **PuTTY (UART)** and the **SSD1306 OLED**.
+The same firmware stage also keeps the previously verified **DS18B20**, **INA219**, **SSD1306 OLED**, and **UART** monitoring functions.
 
 ## Hardware
 
-| Component | Details |
+| Component | Interface / Details |
 |---|---|
-| MCU | STM32 NUCLEO-F446RE |
+| MCU | STM32 NUCLEO-F446RE / STM32F446RE |
 | Motion sensor | MPU6050 |
-| Interface | I2C |
 | MPU6050 address | 0x68 |
-| OLED | SSD1306, 128x64, I2C |
-| OLED address | 0x3C |
-| UART terminal | PuTTY |
+| Temperature sensor | DS18B20 on PA6 |
+| Power monitor | INA219 at 0x40 |
+| OLED | SSD1306 128x64 at 0x3C |
+| I2C bus | I2C1 — PB8 (SCL), PB9 (SDA) |
+| UART | USART2 — PA2 TX, 115200 baud |
+| Buzzer | PB0 |
 
-## MPU6050 I2C
+The I2C bus is shared by the MPU6050, INA219 and SSD1306.
 
-The tested MPU6050 responds at:
-
-```text
-0x68
-```
-
-The firmware configures the MPU6050 through its standard registers and reads the sensor output registers for acceleration, internal temperature, and gyroscope data.
-
-## STM32 Connection
-
-| MPU6050 | STM32 NUCLEO-F446RE |
-|---|---|
-| VCC | Sensor supply according to the module used |
-| GND | GND |
-| SCL | I2C1 SCL — PB8 |
-| SDA | I2C1 SDA — PB9 |
-
-The same I2C bus is also used by the SSD1306 OLED and INA219.
-
-## Firmware
-
-The implementation is written in register-level C in:
-
-```text
-main.c
-```
-
-The firmware includes:
-- STM32F446RE register definitions
-- I2C1 initialization on PB8/PB9
-- MPU6050 register write/read functions
-- MPU6050 initialization
-- 16-bit accelerometer, temperature, and gyroscope data reads
-- UART/PuTTY output
-- SSD1306 OLED output
-- Integration with the existing DS18B20 and INA219 monitoring functions
-
-### MPU6050 configuration
-
-The current firmware initializes the sensor with:
+## MPU6050 Configuration
 
 | Register | Setting |
 |---|---|
@@ -74,23 +37,56 @@ The current firmware initializes the sensor with:
 | GYRO_CONFIG | 0x00 |
 | ACCEL_CONFIG | 0x00 |
 
-The accelerometer and gyroscope are therefore read using the configured default full-scale settings.
+With `GYRO_CONFIG = 0x00` and `ACCEL_CONFIG = 0x00`, the device uses its default full-scale settings.
 
-## Verified PuTTY Output
+The firmware reports the accelerometer and gyroscope as **raw 16-bit register values**. The MPU6050 temperature is also reported as its raw register value; it is not presented as a converted °C measurement.
 
-The following output was obtained during STM32 testing:
+## Firmware Architecture
+
+The original monolithic implementation has been separated into application and driver modules.
 
 ```text
-================================
-DS18B20
-================================
+06-mpu6050-motion-sensor/
+├── main.c
+├── delay.c / delay.h
+├── i2c.c / i2c.h
+├── mpu6050.c / mpu6050.h
+├── ina219.c / ina219.h
+├── ds18b20.c / ds18b20.h
+├── onewire.c / onewire.h
+├── oled.c / oled.h
+├── uart.c / uart.h
+├── buzzer.c / buzzer.h
+├── images/
+├── video/
+└── README.md
+```
+
+### Module responsibilities
+
+- **main.c** — system initialization, sensor sequencing and application flow
+- **mpu6050.c/.h** — MPU6050 register configuration and sensor-data acquisition
+- **ina219.c/.h** — INA219 configuration and voltage/current/power measurements
+- **i2c.c/.h** — register-level I2C1 communication on PB8/PB9
+- **ds18b20.c/.h + onewire.c/.h** — DS18B20 temperature acquisition
+- **oled.c/.h** — SSD1306 display control
+- **uart.c/.h** — USART2 serial output
+- **buzzer.c/.h** — PB0 buzzer control
+- **delay.c/.h** — SysTick-based timing
+
+No STM32 HAL or external sensor library is used in this example.
+
+## Verified Test Output
+
+The MPU6050 integration was previously verified through PuTTY and the SSD1306 OLED. Example raw readings recorded during testing include:
+
+```text
 Temperature: 27.6 C
 
 INA219:
 Bus Voltage: 2.64 V
 Current: 0.005 A
 Power: 0.013 W
--------------------------
 
 MPU6050 DATA
 Accel X: 17096
@@ -100,68 +96,34 @@ Temperature raw: 2528
 Gyro X: -46
 Gyro Y: 470
 Gyro Z: -61
--------------------------
 ```
 
-A subsequent reading was:
-
-```text
-================================
-DS18B20
-================================
-Temperature: 27.6 C
-
-INA219:
-Bus Voltage: 2.63 V
-Current: 0.005 A
-Power: 0.013 W
--------------------------
-
-MPU6050 DATA
-Accel X: 17052
-Accel Y: -232
-Accel Z: -1308
-Temperature raw: 2640
-Gyro X: 3
-Gyro Y: 474
-Gyro Z: 42
--------------------------
-```
-
-These values were also displayed on the SSD1306 OLED during the test.
-
-> **Note:** The MPU6050 temperature shown above is the sensor's raw register value, not a converted temperature in °C. Accelerometer and gyroscope values are also shown as raw 16-bit sensor readings.
+A subsequent reading also showed MPU6050 accelerometer, gyroscope and raw temperature data changing with sensor position.
 
 ## Verification Status
 
-- [x] MPU6050 powered and connected
-- [x] I2C communication verified at 0x68
-- [x] MPU6050 initialized from STM32
-- [x] Accelerometer data read
-- [x] Gyroscope data read
-- [x] MPU6050 internal temperature raw data read
-- [x] Sensor values transmitted through UART
-- [x] Sensor values displayed on SSD1306 OLED
-- [x] MPU6050 integrated with DS18B20 and INA219 monitoring
+- [x] MPU6050 I2C communication verified at 0x68
+- [x] MPU6050 initialization verified
+- [x] Accelerometer data acquisition verified
+- [x] Gyroscope data acquisition verified
+- [x] MPU6050 internal temperature raw data verified
+- [x] UART/PuTTY output verified
+- [x] SSD1306 OLED output verified
+- [x] DS18B20 integrated
+- [x] INA219 integrated
+- [x] Buzzer startup indication integrated
 
-## Project Structure
+## Media
+
+Existing test evidence is kept in:
 
 ```text
-06-mpu6050-motion-sensor/
-├── main.c
-├── README.md
-├── images/
-│   ├── README.md
-│   ├── oled-mpu6050-motion-display.jpeg
-│   ├── putty-stm32-sensor-output.png
-│   └── stm32-mpu6050-tilt-test.jpeg
-└── video/
-    ├── README.md
-    └── stm32-mpu6050-motion-test.mp4
+images/
+video/
 ```
+
+The source tree is intentionally organized so the hardware drivers can be inspected independently while `main.c` remains focused on application behavior.
 
 ## Status
 
 **Status: MPU6050 hardware integration and sensor-data verification completed.**
-
-The current stage demonstrates working MPU6050 data acquisition on STM32 with simultaneous integration of DS18B20, INA219, and SSD1306 OLED monitoring.
