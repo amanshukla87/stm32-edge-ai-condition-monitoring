@@ -1,4 +1,4 @@
-# STM32-Based Lightweight Edge AI for Multisensor Industrial Condition Monitoring
+# STM32-Based Multisensor Industrial Condition Monitoring, Anomaly Detection, and Predictive Maintenance Using TinyML
 
 **BEC 753 – Project I | Electronics Engineering**
 
@@ -157,7 +157,7 @@ The next development work can build on this verified sensing layer for data coll
 
 **Course:** BEC 753 – Project I  
 **Program:** B.Tech Electronics Engineering  
-**Project:** STM32-Based Lightweight Edge AI for Multisensor Industrial Condition Monitoring  
+**Project:** STM32-Based Multisensor Industrial Condition Monitoring, Anomaly Detection, and Predictive Maintenance Using TinyML  
 **Platform:** STM32 NUCLEO-F446RE / STM32F446RE  
 **Repository:** `amanshukla87/stm32-edge-ai-condition-monitoring`
 
