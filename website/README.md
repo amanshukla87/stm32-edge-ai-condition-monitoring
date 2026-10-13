@@ -6,29 +6,26 @@ The aim is to provide a clear interface for viewing sensor measurements, monitor
 
 ## Current Status
 
-The website is under development. The dashboard layout and visual elements are being built with **HTML, CSS, and JavaScript**. Additional tools, such as **Grafana**, may be evaluated or integrated where they fit the final system design.
+The website is under development using **HTML, CSS, and JavaScript**. Additional tools, such as **Grafana**, may be evaluated or integrated if they fit the final system design.
 
-At this stage, any sensor readings, charts, status indicators, anomaly alerts, or predictive-maintenance outputs shown in the website are **simulated/demo data**. They are used to develop and test the interface; they are **not live measurements from the STM32 hardware**, and they should not be treated as validated diagnostic results.
-
-## Planned Hardware Integration
-
-After the dashboard and embedded firmware have been developed and tested, the plan is to connect the website to the physical monitoring system. The intended workflow is to:
-
-- Collect measurements from the supported sensors through the STM32 firmware.
-- Transfer available measurements and system status to the dashboard through a suitable communication interface.
-- Display real sensor readings, motor-condition information, trends, and alerts when the hardware and data link are working.
-- Evaluate anomaly-detection and TinyML/predictive-maintenance features with collected data before presenting them as validated results.
-
-The exact communication method and the role of any additional dashboard platform will depend on implementation and testing. Live data integration and model validation are **planned work, not completed features**.
+At this stage, sensor readings, charts, status indicators, anomaly alerts, and predictive-maintenance outputs shown in the dashboard are **simulated/demo data**. They are for interface development and are not live measurements from the STM32 hardware or validated diagnostic results.
 
 ## Folder Structure
 
-- `index.html` — current website entry page.
-- `assets/` — website-specific images, icons, stylesheets, and scripts as the site grows.
+- `index.html` — main website entry page.
+- `code/` — website source code and supporting notes.
+- `images/` — website screenshots, design references, and project images.
+- `assets/` — other website assets as needed.
 - `docs/` — approved project documents or supporting material intended to be linked from the website.
+
+## Planned Hardware Integration
+
+Once the dashboard and embedded firmware are ready, the plan is to connect the website to the physical monitoring system. The intended workflow is to collect measurements through the STM32 firmware, transfer available data through a suitable communication interface, and display real readings and status information.
+
+Anomaly-detection and TinyML/predictive-maintenance features will need testing with collected data before their outputs can be presented as validated results. The exact communication method and any additional dashboard platform will depend on implementation and testing. **Live hardware integration and model validation are planned work, not completed features.**
 
 ## Development Notes
 
-The website is part of the wider embedded project. Firmware and hardware development are maintained separately in the repository. As implementation progresses, this README will be updated to reflect the features that are actually completed and tested.
+Firmware and hardware development are maintained separately in the repository. This README will be updated as website features are implemented and tested.
 
-**Important:** Until hardware integration and validation are complete, all displayed measurements and diagnostic outputs must be understood as demonstration data.
+**Important:** Until hardware integration and validation are complete, all displayed measurements and diagnostic outputs should be treated as demonstration data.
