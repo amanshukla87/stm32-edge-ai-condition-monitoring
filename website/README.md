@@ -1,6 +1,6 @@
-# Project Website — SmartGuard Industrial Monitoring
+# Project Website — STM32-Based Multisensor Industrial Condition Monitoring
 
-This folder contains the web dashboard being developed for the **STM32-Based Multisensor Industrial Condition Monitoring, Anomaly Detection, and Predictive Maintenance Using TinyML** project.
+This folder contains the website dashboard being developed for the **STM32-Based Multisensor Industrial Condition Monitoring, Anomaly Detection, and Predictive Maintenance Using TinyML** project.
 
 The aim is to provide a clear interface for viewing sensor measurements, monitoring motor and system conditions, displaying trends, and presenting diagnostic or anomaly indicators.
 
