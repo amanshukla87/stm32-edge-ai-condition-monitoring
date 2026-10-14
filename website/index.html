@@ -1,16 +1,310 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Website dashboard for the STM32-Based Multisensor Industrial Condition Monitoring, Anomaly Detection, and Predictive Maintenance Using TinyML project.">
-  <title>STM32-Based Multisensor Industrial Condition Monitoring</title>
+  <meta name="description" content="Demonstration dashboard for the STM32-Based Multisensor Industrial Condition Monitoring, Anomaly Detection, and Predictive Maintenance Using TinyML project.">
+  <title>STM32 Edge AI | Industrial Condition Monitoring</title>
+  <style>
+    :root{--bg:#020b19;--panel:#071b32;--line:#16416b;--cyan:#20d8ff;--green:#26f0a0;--muted:#91abc8}
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;background:var(--bg);color:#eaf6ff;font:13px Arial,sans-serif}
+    button{cursor:pointer;font:inherit}
+    header{padding:16px 22px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:15px;background:#041226;border-bottom:1px solid var(--line)}
+    .brand{font-size:22px;font-weight:bold;color:var(--cyan)}
+    .muted{color:var(--muted)}
+    .demo{color:#ffbd57;font-weight:bold}
+    .layout{display:grid;grid-template-columns:195px minmax(0,1fr);min-height:85vh}
+    aside{background:#041327;padding:12px;border-right:1px solid var(--line)}
+    .nav{display:block;width:100%;padding:11px;margin-bottom:5px;color:#c8d9ed;background:transparent;border:1px solid transparent;border-radius:7px;text-align:left}
+    .nav:hover,.nav.active{background:#0754a7;border-color:#168bff;color:white}
+    main{padding:12px;min-width:0}
+    .hero{padding:24px;border:1px solid #1676b7;border-radius:12px;margin-bottom:12px;background:linear-gradient(110deg,#102c4c,#041327)}
+    .hero h1{margin-top:0;font-size:clamp(22px,3vw,32px);line-height:1.25}
+    .hero span{color:var(--cyan)}
+    .grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+    .panel{min-width:0;padding:14px;background:linear-gradient(145deg,#091e36,#041327);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+    .panel h3{margin-top:0;font-size:14px}
+    .icon{font-size:32px;margin:12px 0}
+    .value{font-size:27px;font-weight:bold;margin:15px 0}
+    .cyan{color:var(--cyan)}.green{color:var(--green)}.orange{color:#ffb32c}.purple{color:#bf8cff}
+    .status{color:var(--green);font-size:11px}
+    .metric{padding:9px 0;border-bottom:1px solid #183650;color:#b8cee4}
+    .metric b{display:block;color:white;font-size:16px;margin-top:6px}
+    .bar{height:8px;background:#19334d;border-radius:8px;margin:12px 0;overflow:hidden}
+    .bar span{display:block;height:100%;width:55%;background:linear-gradient(90deg,#ffc438,#ff554a);transition:width .25s}
+    .bulb{text-align:center;font-size:46px;text-shadow:0 0 20px #00ff74}
+    .motor{text-align:center;font-size:42px;animation:rotate 5s linear infinite}
+    @keyframes rotate{to{transform:rotate(360deg)}}
+    .action,.tab{padding:8px 12px;color:#eaf6ff;background:#0b3159;border:1px solid #20527b;border-radius:8px;margin:3px}
+    .tab.active{background:#0874d4}
+    .lower{display:grid;grid-template-columns:1.3fr 1fr 1.2fr;gap:10px;margin-top:10px}
+    .tabs{display:flex;flex-wrap:wrap;margin-bottom:10px}
+    .chart{height:130px;width:100%;background:repeating-linear-gradient(0deg,transparent 0 24px,#16314b 25px),repeating-linear-gradient(90deg,transparent 0 40px,#16314b 41px)}
+    .chart svg{width:100%;height:100%}
+    .gauge{text-align:center;padding:15px;font-size:26px;color:#ffb32c}
+    .health{font-size:32px;color:var(--green)}
+    .bottom-nav{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin:14px 0}
+    .bottom-nav button{padding:12px 5px;color:#d5e7f8;background:#07182b;border:1px solid var(--line);border-radius:8px}
+    footer{display:flex;justify-content:space-between;flex-wrap:wrap;gap:15px;padding:18px 5px;border-top:1px solid var(--line);color:var(--muted)}
+    #synopsisViewer{display:none;margin:15px 0;padding:16px;background:var(--panel);border:1px solid var(--line);border-radius:12px}
+    #synopsisViewer.open{display:block}
+    .synopsis-toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+    #synopsisFrame{width:100%;height:650px;margin-top:15px;background:white;border:1px solid var(--line);border-radius:8px}
+    #synopsisMessage{color:var(--green);overflow-wrap:anywhere}
+    input[type=file]{max-width:100%;color:#eaf6ff;margin:10px 0}
+    section[id]{scroll-margin-top:12px}
+    @media(max-width:1200px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}.lower{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media(max-width:750px){.layout{grid-template-columns:1fr}aside{display:flex;overflow-x:auto;gap:5px;border-right:0;border-bottom:1px solid var(--line)}.nav{min-width:max-content;width:auto}.grid,.lower{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media(max-width:480px){header{padding:14px}.grid,.lower{grid-template-columns:1fr}.bottom-nav{grid-template-columns:repeat(2,minmax(0,1fr))}main{padding:9px}.hero{padding:18px}}
+  </style>
 </head>
 <body>
+<header>
+  <div>
+    <div class="brand">⚙ STM32 Edge AI</div>
+    <div class="muted">Multisensor Industrial Condition Monitoring</div>
+  </div>
+  <div class="demo">● DEMONSTRATION MODE<br><span class="muted">Simulated readings · No live hardware link</span></div>
+  <div><div id="date" class="muted"></div><strong id="clock">00:00:00</strong></div>
+</header>
+
+<div class="layout">
+  <aside aria-label="Main navigation">
+    <button class="nav active" data-target="home">⌂ Dashboard</button>
+    <button class="nav" data-target="sensors">▦ Sensor readings</button>
+    <button class="nav" data-target="trends">⌁ Sensor trends</button>
+    <button class="nav" data-target="diagnostics">✣ Diagnostics demo</button>
+    <button class="nav" data-target="synopsisViewer" data-open-synopsis="true">▤ Project synopsis</button>
+    <button class="nav" data-target="project-info">ⓘ Project information</button>
+    <a class="nav" href="https://github.com/amanshukla87/stm32-edge-ai-condition-monitoring" target="_blank" rel="noopener noreferrer">◉ GitHub repository ↗</a>
+    <p class="muted">Embedded systems · Sensor monitoring · Edge AI research</p>
+  </aside>
+
   <main>
-    <h1>STM32-Based Multisensor Industrial Condition Monitoring, Anomaly Detection, and Predictive Maintenance Using TinyML</h1>
-    <p>The project dashboard is under development.</p>
-    <p>Sensor values and diagnostic outputs are demonstration data until they are connected to and verified against the physical hardware.</p>
+    <section class="hero" id="home">
+      <h1>STM32-Based <span>Multisensor Industrial Condition Monitoring</span></h1>
+      <p>Anomaly Detection and Predictive Maintenance Using TinyML</p>
+      <p class="muted">Interactive front-end prototype for exploring example sensor readings and planned monitoring features.</p>
+    </section>
+
+    <section class="grid" id="sensors" aria-label="Demonstration sensor readings">
+      <article class="panel">
+        <h3>🌡 Temperature Sensor</h3><div class="icon orange">🌡️</div>
+        <div class="value"><span id="temp">32.4</span> °C</div>
+        <div class="bar"><span id="tempFill"></span></div>
+        <div class="muted">DS18B20</div><p class="status" id="tempStatus">● Normal (Demo)</p>
+      </article>
+      <article class="panel">
+        <h3>⚡ INA219 (V / I / P)</h3>
+        <div class="metric">Voltage<b><span id="volt">12.46</span> V</b></div>
+        <div class="metric">Current<b><span id="current">1.32</span> A</b></div>
+        <div class="metric">Power<b><span id="power">16.43</span> W</b></div><p class="status">● Simulated values</p>
+      </article>
+      <article class="panel">
+        <h3>💡 LED indicator</h3><p>Status (local UI demo)</p><div class="bulb" id="bulb">💡</div>
+        <p class="status" id="ledStatus">● ON</p><button class="action" id="toggleLed">Toggle indicator</button>
+      </article>
+      <article class="panel">
+        <h3>✥ MPU6050</h3>
+        <div class="metric">Acceleration (m/s²)<b>X: <span id="ax">0.02</span><br>Y: -0.01<br>Z: 9.81</b></div>
+        <div class="metric">Vibration RMS<b><span id="vib">0.34</span> g</b></div>
+        <div class="metric">Sensor temperature<b>36.7 °C (example)</b></div><p class="status">● Simulated values</p>
+      </article>
+      <article class="panel">
+        <h3>🧊 Tilt & orientation</h3><div class="icon cyan">🧊</div>
+        <div class="metric">X Tilt<b>2.3° (example)</b></div><div class="metric">Y Tilt<b>1.8° (example)</b></div><div class="metric">Z Axis<b>9.81 (example)</b></div>
+      </article>
+      <article class="panel">
+        <h3>⚙ Motor & encoder</h3><div class="motor">⚙️</div>
+        <div class="gauge">RPM <b id="rpm">2450</b><small> / 5000 (demo scale)</small></div>
+        <div class="metric">Estimated load<b id="load">49%</b></div><div class="metric">Direction<b>Forward (example)</b></div><div class="metric">Encoder pulses<b id="pulses">1470/s</b></div>
+      </article>
+      <article class="panel">
+        <h3>▣ Motor driver (L298N)</h3><div class="icon cyan">⚙️</div>
+        <div class="metric">PWM duty cycle<b>72% (example)</b></div><div class="bar"><span style="width:72%;background:#168bff"></span></div>
+        <div class="metric">Direction<b>Forward (example)</b></div><div class="metric">Driver temperature<b>42.5 °C (example)</b></div>
+      </article>
+      <article class="panel">
+        <h3>♧ Hall effect sensor</h3><div class="icon cyan">🧲</div><p class="status">● Example status only</p>
+        <div class="metric">Pulse rate<b id="hallPulses">1470/s</b></div>
+      </article>
+      <article class="panel">
+        <h3>CAN protocol</h3><p class="status">● Not connected — demo</p>
+        <div class="metric">Bus load<b>32% (example)</b></div><div class="metric">Messages<b id="messages">832</b></div>
+      </article>
+      <article class="panel">
+        <h3>RS-485</h3><p class="status">● Not connected — demo</p>
+        <div class="metric">Data rate<b>9600 (example)</b></div><div class="metric">Received<b id="received">962</b></div><div class="metric">Errors<b>0 (example)</b></div>
+      </article>
+    </section>
+
+    <section class="lower" id="trends">
+      <article class="panel">
+        <h3>⌁ Sensor trends</h3>
+        <div class="tabs">
+          <button class="tab active" data-chart="temp">Temperature</button><button class="tab" data-chart="volt">Voltage</button><button class="tab" data-chart="current">Current</button><button class="tab" data-chart="power">Power</button><button class="tab" data-chart="vib">Vibration</button>
+        </div>
+        <div class="chart"><svg viewBox="0 0 500 120" preserveAspectRatio="none" role="img" aria-label="Simulated sensor trend graph"><polyline id="trendLine" points="0,80 50,60 100,70 150,40 200,55 250,35 300,50 350,30 400,45 450,25 500,35" fill="none" stroke="#ff9b34" stroke-width="3"/></svg></div>
+        <p class="muted">Illustrative simulated history; not measured hardware data.</p>
+      </article>
+      <article class="panel">
+        <h3>◉ Motor performance (demo)</h3>
+        <div class="tabs"><button class="tab active" data-motor="speed">Speed</button><button class="tab" data-motor="load">Load</button><button class="tab" data-motor="vibration">Vibration</button></div>
+        <div class="gauge"><b id="motorMetric">2450</b><div id="motorUnit">RPM</div></div>
+        <div class="chart"><svg viewBox="0 0 300 120" preserveAspectRatio="none" role="img" aria-label="Illustrative motor trend graph"><polyline id="motorLine" points="0,60 30,30 60,50 90,25 120,55 150,35 180,50 210,30 240,60 270,35 300,45" fill="none" stroke="#168bff" stroke-width="2"/></svg></div>
+      </article>
+      <article class="panel" id="diagnostics">
+        <h3>♧ Anomaly detection & predictive maintenance</h3>
+        <p class="orange">● Illustrative diagnostic state</p><div class="health">—</div>
+        <p>Model output is not available in this prototype.</p>
+        <div class="metric">Remaining useful life<b>Not calculated</b></div>
+        <div class="bar"><span style="width:35%;background:#ffb32c"></span></div>
+        <button class="action" id="detailsButton">About this demo</button>
+        <p class="muted" id="detailsText" hidden>Real anomaly detection and remaining-useful-life estimation require recorded sensor data, a tested algorithm/model, and experimental validation on the target hardware.</p>
+      </article>
+    </section>
+
+    <section id="synopsisViewer">
+      <div class="synopsis-toolbar"><h2>📄 Project Synopsis PDF</h2><button class="action" id="closeSynopsis">Close</button></div>
+      <p class="muted">Choose a PDF from your device to preview it in this browser. The file is not uploaded to the repository or a server.</p>
+      <label for="synopsisFile">Choose your synopsis PDF:</label><br>
+      <input type="file" id="synopsisFile" accept=".pdf,application/pdf">
+      <p id="synopsisMessage" aria-live="polite">No PDF selected.</p>
+      <div><button class="action" id="openSavedPDF">Try to open synopsis.pdf beside this page</button><button class="action" id="downloadPDF" disabled>Download selected PDF</button></div>
+      <iframe id="synopsisFrame" title="Project synopsis PDF viewer" hidden></iframe>
+    </section>
+
+    <section class="panel" id="project-info" style="margin-top:10px">
+      <h2>Project information</h2>
+      <p><strong>Project:</strong> STM32-Based Multisensor Industrial Condition Monitoring, Anomaly Detection, and Predictive Maintenance Using TinyML</p>
+      <p><strong>Platform:</strong> STM32 NUCLEO-F446RE with planned multisensor monitoring and lightweight edge-AI development.</p>
+      <p><strong>Project team:</strong> Aman Shukla and Govind Shukla</p>
+      <p><strong>Institution:</strong> BRSVBP Rajkiya Engineering College, Basti</p>
+      <p class="muted">This page is a front-end prototype. Displayed values and protocol states are illustrative and do not indicate that a physical STM32 board, CAN, or RS-485 connection is active. TinyML and predictive-maintenance outputs must be added and validated separately.</p>
+    </section>
+
+    <div class="bottom-nav">
+      <button data-target="home">⌂<br>Dashboard</button><button data-target="sensors">▦<br>Sensors</button><button data-target="trends">⌁<br>Trends</button><button data-target="diagnostics">✣<br>Diagnostics</button><button data-target="project-info">ⓘ<br>Project info</button>
+    </div>
+    <footer>
+      <div><b>Project team</b><p>Aman Shukla</p><p>Govind Shukla</p></div>
+      <div><b>Institution</b><p>BRSVBP REC Basti</p></div>
+      <div><b>Project location</b><p>Basti, Uttar Pradesh</p></div>
+      <div><b>Development status</b><p>Dashboard prototype · 2026</p></div>
+    </footer>
+    <p class="demo">DEMO MODE: Sensor readings, charts, and protocol values are simulated. No actual STM32 hardware is connected to this dashboard.</p>
   </main>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+let ledOn = true;
+let selectedChart = "temp";
+let motorMode = "speed";
+let pdfURL = "";
+const historyData = {temp:[],volt:[],current:[],power:[],vib:[]};
+
+function updateClock(){
+  const now = new Date();
+  $("clock").textContent = now.toLocaleTimeString();
+  $("date").textContent = now.toLocaleDateString();
+}
+function toggleLED(){
+  ledOn = !ledOn;
+  $("bulb").style.opacity = ledOn ? "1" : ".25";
+  $("ledStatus").textContent = ledOn ? "● ON (UI demo)" : "● OFF (UI demo)";
+}
+function drawTrend(){
+  const arr = historyData[selectedChart];
+  if(arr.length < 2) return;
+  const min = Math.min(...arr), max = Math.max(...arr), range = max-min || 1;
+  const points = arr.map((value,index) => {
+    const x = index*500/(arr.length-1);
+    const y = 110-(value-min)/range*95;
+    return x+","+y;
+  }).join(" ");
+  $("trendLine").setAttribute("points",points);
+  const colors = {temp:"#ff9b34",volt:"#168bff",current:"#26f0a0",power:"#bf8cff",vib:"#20d8ff"};
+  $("trendLine").setAttribute("stroke",colors[selectedChart]);
+}
+function updateDashboard(){
+  const t = +(31.5+Math.random()*3.2).toFixed(1);
+  const v = +(12.2+Math.random()*.5).toFixed(2);
+  const c = +(1.1+Math.random()*.4).toFixed(2);
+  const p = +(v*c).toFixed(2);
+  const vib = +(0.2+Math.random()*.35).toFixed(2);
+  const rpm = 2350+Math.floor(Math.random()*220);
+  $("temp").textContent=t; $("volt").textContent=v; $("current").textContent=c;
+  $("power").textContent=p; $("vib").textContent=vib; $("rpm").textContent=rpm;
+  $("load").textContent=Math.round(rpm/5000*100)+"%";
+  $("pulses").textContent=Math.round(rpm*.6)+"/s";
+  $("hallPulses").textContent=Math.round(rpm*.6)+"/s";
+  $("messages").textContent=832+Math.floor(Math.random()*30);
+  $("received").textContent=962+Math.floor(Math.random()*20);
+  $("ax").textContent=(Math.random()*.1).toFixed(2);
+  $("tempFill").style.width=Math.min(100,t/60*100)+"%";
+  $("tempStatus").textContent=t>35?"● Warm (Demo)":"● Normal (Demo)";
+  historyData.temp.push(t); historyData.volt.push(v); historyData.current.push(c);
+  historyData.power.push(p); historyData.vib.push(vib);
+  Object.values(historyData).forEach(arr=>{if(arr.length>24)arr.shift();});
+  drawTrend();
+  if(motorMode==="speed"){$("motorMetric").textContent=rpm;$("motorUnit").textContent="RPM";}
+  else if(motorMode==="load"){$("motorMetric").textContent=$("load").textContent;$("motorUnit").textContent="Estimated load";}
+  else{$("motorMetric").textContent=vib;$("motorUnit").textContent="g (demo vibration)";}
+  updateClock();
+}
+document.querySelectorAll("[data-chart]").forEach(button=>button.addEventListener("click",()=>{
+  document.querySelectorAll("[data-chart]").forEach(b=>b.classList.remove("active"));
+  button.classList.add("active"); selectedChart=button.dataset.chart; drawTrend();
+}));
+document.querySelectorAll("[data-motor]").forEach(button=>button.addEventListener("click",()=>{
+  document.querySelectorAll("[data-motor]").forEach(b=>b.classList.remove("active"));
+  button.classList.add("active"); motorMode=button.dataset.motor; updateDashboard();
+}));
+function openSynopsis(){
+  $("synopsisViewer").classList.add("open");
+  $("synopsisViewer").scrollIntoView({behavior:"smooth",block:"start"});
+}
+function closeSynopsis(){$("synopsisViewer").classList.remove("open");}
+document.querySelectorAll("[data-target]").forEach(button=>button.addEventListener("click",()=>{
+  const target=button.dataset.target;
+  if(button.dataset.openSynopsis==="true") openSynopsis();
+  else if(target==="synopsisViewer") openSynopsis();
+  else $(target)?.scrollIntoView({behavior:"smooth",block:"start"});
+  document.querySelectorAll(".nav").forEach(nav=>nav.classList.toggle("active",nav===button));
+}));
+$("toggleLed").addEventListener("click",toggleLED);
+$("closeSynopsis").addEventListener("click",closeSynopsis);
+$("detailsButton").addEventListener("click",()=>{
+  $("detailsText").hidden=!$("detailsText").hidden;
+  $("detailsButton").textContent=$("detailsText").hidden?"About this demo":"Hide explanation";
+});
+$("synopsisFile").addEventListener("change",event=>{
+  const file=event.target.files[0];
+  if(!file)return;
+  if(file.type!=="application/pdf"&&!file.name.toLowerCase().endsWith(".pdf")){
+    $("synopsisMessage").textContent="Please select a PDF file."; return;
+  }
+  if(pdfURL)URL.revokeObjectURL(pdfURL);
+  pdfURL=URL.createObjectURL(file);
+  $("synopsisFrame").src=pdfURL; $("synopsisFrame").hidden=false;
+  $("synopsisMessage").textContent="Viewing: "+file.name+". This is a local preview; the file has not been uploaded.";
+  $("downloadPDF").disabled=false;
+});
+$("downloadPDF").addEventListener("click",()=>{
+  if(!pdfURL)return;
+  const link=document.createElement("a");
+  link.href=pdfURL; link.download=$("synopsisFile").files[0].name; link.click();
+});
+$("openSavedPDF").addEventListener("click",()=>{
+  $("synopsisFrame").src="synopsis.pdf"; $("synopsisFrame").hidden=false;
+  $("synopsisMessage").textContent="Trying to open synopsis.pdf beside this page. If it is unavailable, choose a PDF from your device.";
+});
+updateClock(); updateDashboard();
+setInterval(updateDashboard,1500);
+setInterval(updateClock,1000);
+</script>
 </body>
 </html>
