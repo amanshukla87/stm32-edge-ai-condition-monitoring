@@ -4,7 +4,7 @@
 
 Firmware development on the **STM32 NUCLEO-F446RE / STM32F446RE**, progressing from register-level GPIO and sensor interfacing to a combined multisensor monitoring application.
 
-The repository documents the implemented firmware stages in order. The current implementation is at the **MPU6050 integration stage**; Edge AI inference is not yet part of the firmware.
+The repository documents the implemented firmware stages in order. The current verified firmware stage is **MPU6050 integration**. Work is now also underway to integrate a **2.8-inch SPI TFT display** as a larger visual interface. Edge AI inference is not yet part of the firmware.
 
 ## Hardware
 
@@ -13,6 +13,7 @@ The repository documents the implemented firmware stages in order. The current i
 - INA219 voltage/current/power monitor
 - MPU6050 accelerometer and gyroscope
 - SSD1306 0.96-inch 128×64 I2C OLED
+- 2.8-inch SPI TFT display, 240×320, module marked **“2.8\" TFT SPI 240x320 V1.2”** (integration in progress)
 - External LED
 - Buzzer
 - USB / ST-LINK virtual COM interface
@@ -28,7 +29,9 @@ The repository documents the implemented firmware stages in order. The current i
 | 05 | `05-ina219-power-monitoring` | Voltage, current and power measurement |
 | 06 | `06-mpu6050-motion-sensor` | MPU6050 motion sensing with the existing monitoring stack |
 
-Each stage is kept as a separate firmware example so the progression from a simple peripheral test to the integrated system can be followed from the source code.
+The TFT display is being brought up separately before it is added to the integrated application. It is **not yet a completed or verified firmware stage**.
+
+Each completed stage is kept as a separate firmware example so the progression from a simple peripheral test to the integrated system can be followed from the source code.
 
 ## Current Firmware
 
@@ -60,6 +63,21 @@ The I2C devices share **I2C1**:
 | USART2 | UART | PA2 TX, 115200 baud |
 
 The DS18B20 data line uses a **4.7 kΩ pull-up resistor**.
+
+## 2.8-Inch SPI TFT Display — Integration in Progress
+
+A **2.8-inch, 240×320 SPI TFT module** marked `2.8" TFT SPI 240x320 V1.2` is being evaluated for use as the project's larger display interface. The goal is to display relevant condition-monitoring information from the STM32, such as sensor readings and system status, after the display has been initialized and tested.
+
+Current progress:
+
+- The display module and its labelled connector pins have been inspected.
+- TFT bring-up and driver identification are being investigated.
+- The screen currently remains black with no visible backlight during the initial reset-code test.
+- The display is currently disconnected while its interface, controller compatibility, power and backlight requirements are checked.
+
+**Status:** The TFT is not yet operational or integrated with the sensor firmware. The exact display controller and working pin mapping have not yet been confirmed, so no controller-specific support is claimed here. Touchscreen and SD-card connections, if present on the module, are not currently part of the working setup.
+
+Next steps are to confirm the module's controller and electrical requirements, verify power and backlight behaviour, establish the SPI and control-pin mapping, run a minimal display test, and then integrate the display with the existing monitoring firmware. The SSD1306 OLED remains the display used by the current verified firmware stage.
 
 ## MPU6050
 
@@ -138,7 +156,7 @@ Main areas covered in the repository:
 
 ## Current Status
 
-**Current stage: multisensor firmware integration through MPU6050.**
+**Current verified firmware stage: multisensor integration through MPU6050.**
 
 Implemented through Stage 06:
 
@@ -151,7 +169,9 @@ Implemented through Stage 06:
 - UART monitoring
 - Modular driver-based firmware structure
 
-The next development work can build on this verified sensing layer for data collection, signal processing, feature extraction, communication interfaces, and eventually lightweight Edge AI deployment.
+**In progress:** bring-up and integration of the 2.8-inch SPI TFT display. The TFT currently has no confirmed working display output; it must pass a standalone test before being integrated into the sensor application.
+
+The next development work can build on the verified sensing layer for TFT display bring-up, data collection, signal processing, feature extraction, communication interfaces, and eventually lightweight Edge AI deployment.
 
 ## Project Information
 
@@ -165,4 +185,3 @@ The next development work can build on this verified sensing layer for data coll
 
 - **Aman Shukla**
 - **Govind Shukla**
-
