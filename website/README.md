@@ -6,25 +6,25 @@ The dashboard is being developed to bring the project's sensor information and m
 
 ## Website Screenshots
 
-The screenshots below show the current website running locally during development. They are included to document the interface as it looks at this stage.
+The screenshots below show the current website running locally during development. They document the interface as it looks at this stage.
 
 ### 1. Dashboard Overview
 
-![Dashboard overview](images/website-dashboard-overview.png)
+![Dashboard overview](images/website-dashboard-overview.jpeg)
 
 This view gives an overall look at the monitoring dashboard and its main status panels.
 
 ### 2. Sensor Monitoring
 
-![Sensor monitoring dashboard](images/website-sensor-monitoring.png)
+![Sensor monitoring dashboard](images/website-sensor-monitoring.jpeg)
 
 This view focuses on the sensor readings and monitoring panels used to demonstrate how information from different parts of the system can be presented.
 
 ### 3. Anomaly Detection
 
-![Anomaly detection dashboard](images/website-anomaly-detection.png)
+![Anomaly detection dashboard](images/website-anomaly-detection.jpeg)
 
-This view shows the interface planned for displaying anomaly-related information as the detection workflow develops.
+This view shows the interface for presenting anomaly-related information as the detection workflow develops.
 
 ## Technologies and Tools
 
