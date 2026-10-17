@@ -50,6 +50,6 @@ The website is a work in progress. The screenshots show the interface running lo
 
 ## Next Steps
 
-Development will continue on the dashboard layout and interactions, followed by integration with the STM32 monitoring system using a communication method that is implemented and tested. Any anomaly-detection or TinyML functionality will need to be evaluated against collected data before its results are described as validated.
+I'll keep improving the dashboard layout and features, then connect it to the STM32 system once the communication method is working and tested. Anomaly-detection and TinyML results will be reported after testing them with actual collected data.
 
-This README will be updated as the website and hardware integration progress.
+I'll keep this README updated as the website and hardware integration progress.
