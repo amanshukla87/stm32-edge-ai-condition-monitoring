@@ -40,13 +40,30 @@ The website is a work in progress. The screenshots show the interface running lo
 
 **Important:** Sensor values, charts, status indicators, and anomaly-related outputs shown in the current dashboard are simulated/demo data unless a feature is specifically connected to the hardware and verified. They should not be interpreted as live sensor measurements or validated TinyML predictions. Hardware communication, data handling, and model outputs will be documented more precisely as they are implemented and tested.
 
+## Planned Live Hardware Data Integration
+
+The next planned stage is to connect the STM32 NUCLEO-F446RE to the website through an ESP32 Wi-Fi gateway. The ESP32 is a planned addition, not a currently completed or tested connection.
+
+Proposed data path:
+
+1. The STM32 reads available sensors and formats measurements into a serial message.
+2. The ESP32 receives those messages over UART and forwards them over Wi-Fi.
+3. A suitable data service, such as an MQTT broker or web API, makes the readings available to website clients.
+4. The website updates sensor cards, trend graphs, and connection indicators from received measurements.
+
+The ESP32 is not the only possible solution. A computer connected to the STM32 over USB serial, or a Raspberry Pi gateway, could also forward the data. The ESP32 route is being considered for wireless monitoring.
+
+**Until the end-to-end connection is implemented and tested, the website remains in demonstration mode.** Live values, data storage, authentication, and any remote access must be configured and verified before claiming live monitoring.
+
+See [Live Hardware Data Integration Plan](docs/LIVE_HARDWARE_DATA_INTEGRATION.md) for the proposed architecture and implementation stages.
+
 ## Folder Structure
 
 - `index.html` — main website entry page.
 - `code/` — dashboard source code and related notes.
 - `images/` — website screenshots and project images.
 - `assets/` — additional website resources, as needed.
-- `docs/` — project documents intended to be linked from the website.
+- `docs/` — project documents intended to be linked from the website, including the live-data integration plan.
 
 ## Next Steps
 
