@@ -931,6 +931,21 @@ static uint8_t get_font(
     }
 
     /*
+     * R (used by the OLED sensor-error message: ERR)
+     */
+
+    if (c == 'R')
+    {
+        font[0] = 0x7F;
+        font[1] = 0x09;
+        font[2] = 0x19;
+        font[3] = 0x29;
+        font[4] = 0x46;
+
+        return 1U;
+    }
+
+    /*
      * C
      */
 
@@ -1278,7 +1293,7 @@ int main(void)
     );
 
     uart2_send_string(
-        "STM32F446RE DS18B20 + OLED\r\n"
+        "STM32F446RE DS18B20 + OLED + BUZZER\r\n"
     );
 
     uart2_send_string(
@@ -1291,6 +1306,10 @@ int main(void)
 
     uart2_send_string(
         "OLED: I2C1 PB8/PB9\r\n"
+    );
+
+    uart2_send_string(
+        "BUZZER: PB0, ALARM > 27 C\r\n"
     );
 
     uart2_send_string(
