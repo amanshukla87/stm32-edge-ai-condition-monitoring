@@ -1,6 +1,8 @@
 #include <stdint.h>
 
-/* STM32F446RE register-level DS18B20 + SSD1306 OLED test.
+/* Stage 03: DS18B20 temperature over UART2 + SSD1306 all-pixels-ON test.
+ * This is a condensed standalone implementation of the supplied code's behavior.
+ * STM32F446RE register-level DS18B20 + SSD1306 OLED test.
  * DS18B20 DATA: PA6 with external 4.7k pull-up to 3.3V
  * OLED SSD1306 I2C: PB8=SCL, PB9=SDA, address 0x3C
  * UART2 TX: PA2, 115200 baud, 8N1
