@@ -82,6 +82,11 @@
 #define OLED_ADDRESS        0x3CU
 
 
+/* ---------------- BUZZER ---------------- */
+
+#define BUZZER_PIN          0U
+
+
 /* ============================================================
  * DELAY
  * ============================================================ */
@@ -1179,6 +1184,37 @@ static void oled_show_error(void)
 
 
 /* ============================================================
+ * BUZZER PB0
+ * ============================================================ */
+
+static void buzzer_init(void)
+{
+    /* Enable GPIOB clock */
+    RCC_AHB1ENR |= (1U << 1);
+
+    /* PB0 = General Purpose Output */
+    GPIOB_MODER &= ~(3U << (BUZZER_PIN * 2U));
+    GPIOB_MODER |=  (1U << (BUZZER_PIN * 2U));
+
+    /* Push-pull output */
+    GPIOB_OTYPER &= ~(1U << BUZZER_PIN);
+
+    /* Buzzer OFF initially */
+    GPIOB_ODR &= ~(1U << BUZZER_PIN);
+}
+
+static void buzzer_on(void)
+{
+    GPIOB_ODR |= (1U << BUZZER_PIN);
+}
+
+static void buzzer_off(void)
+{
+    GPIOB_ODR &= ~(1U << BUZZER_PIN);
+}
+
+
+/* ============================================================
  * MAIN
  * ============================================================ */
 
@@ -1218,6 +1254,12 @@ int main(void)
      */
 
     uart2_init();
+
+    /*
+     * Initialize buzzer.
+     */
+
+    buzzer_init();
 
     /*
      * Release DS18B20.
@@ -1297,6 +1339,9 @@ int main(void)
             );
 
             oled_show_error();
+
+            /* Buzzer OFF on sensor error */
+            buzzer_off();
         }
 
         /*
@@ -1321,6 +1366,21 @@ int main(void)
             oled_show_temperature(
                 temperature_raw
             );
+
+            /*
+             * Buzzer ON if temperature > 27 C.
+             * DS18B20 resolution = 1/16 C.
+             * 27 C = 27 x 16 = 432.
+             */
+
+            if (temperature_raw > (27 * 16))
+            {
+                buzzer_on();
+            }
+            else
+            {
+                buzzer_off();
+            }
         }
 
         /*
