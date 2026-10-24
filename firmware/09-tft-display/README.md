@@ -1,47 +1,50 @@
-# 09 — TFT Display (ST7789)
+# 09 — TFT Display
 
-## Objective
+## What I've done so far
 
-Add an SPI TFT display to the STM32F446RE condition-monitoring project. This stage starts with a basic colour-screen test before integrating sensor readings into the display.
+I've connected the 2.8-inch SPI TFT module to the STM32 NUCLEO-F446RE and worked through the basic display colour test. The wiring is in place, and the test video shows the screen outputs observed so far.
 
-## Hardware
+This is an early hardware bring-up stage. The colour test is a useful first check, but it doesn't yet mean the display integration is complete.
+
+## Hardware and connections
 
 - STM32 NUCLEO-F446RE
-- ST7789-based SPI TFT module
+- 2.8-inch SPI TFT display module (240 × 320; controller details should be confirmed against the exact module)
 - Jumper wires
 
-## Pin Connections
-
-| TFT signal | NUCLEO-F446RE pin | Notes |
+| TFT signal | STM32 pin | Purpose |
 |---|---|---|
-| VCC | 3.3V, if supported by the module | Verify the exact module's supply requirements |
+| VCC | 3.3 V, if supported by the module | Power |
 | GND | GND | Common ground |
-| LED / BL | Verified 3.3V backlight supply | Check the module's backlight circuit |
-| SCK / CLK | PB13 | SPI2_SCK, AF5 |
-| SDI / MOSI | PB15 | SPI2_MOSI, AF5 |
-| SDO / MISO | PB14 | Optional for write-only display operation |
-| CS | PB12 | GPIO output, software-controlled chip select |
-| DC / RS | PC0 | GPIO output |
-| RESET / RST | PC1 | GPIO output |
+| SCK / CLK | PB13 | SPI2 clock |
+| SDI / MOSI | PB15 | SPI2 data to display |
+| SDO / MISO | PB14 | SPI data from display; may not be needed for write-only tests |
+| CS | PB12 | Display chip select |
+| DC / RS | PC0 | Command/data selection |
+| RESET / RST | PC1 | Display reset |
+| LED / BL | Module-dependent | Backlight; follow the display board's specifications |
 
-## Firmware Status
+## Test evidence
 
-This folder is the place for the standalone TFT test firmware and supporting notes. The first test should initialise the ST7789 and cycle through solid red, green, blue, white, and black screens.
+- [Hardware setup and screen photos](./images/)
+- [Four-colour display test video](./videos/06-tft-four-colour-display-test.mp4)
 
-**Important:** ST7789 modules vary by resolution, panel offsets, colour order, and initialization requirements. Confirm the exact module before treating a generic initialization sequence as final. ILI9341 initialization commands are not interchangeable with ST7789 commands.
+The photos and video document the current setup and the colour outputs observed during testing.
 
-## Test Checklist
+## Next step: show sensor readings on the TFT
 
-- [ ] Confirm VCC, GND, and backlight wiring.
-- [ ] Confirm SPI2 GPIO configuration: PB13 SCK and PB15 MOSI, AF5.
-- [ ] Confirm CS (PB12), DC (PC0), and RESET (PC1) are configured as GPIO outputs.
-- [ ] Build and flash the standalone test firmware.
-- [ ] Verify that each test colour fills the visible panel correctly.
-- [ ] Record the actual panel resolution and any required X/Y offsets.
-- [ ] After the standalone test works, plan integration with the multisensor monitor.
+Now that the basic colour test has been tried, the next task is to display live sensor data on the screen. I'll bring this in step by step:
 
-## Safety and Debugging Notes
+1. Confirm the display controller, initialization, orientation, and usable screen area.
+2. Add simple text rendering and check that text stays readable on the panel.
+3. Read sensor values from the STM32 firmware and format them for display.
+4. Build a small monitoring screen for the available readings, then refresh it without unnecessarily redrawing the whole display.
+5. Test the displayed values against the sensor readings reported by the firmware.
 
-- Do not assume every TFT board supports 3.3V on every power/backlight pin; verify the module's specifications.
-- A glowing backlight does not prove that SPI communication or display initialization is working.
-- If the panel stays white or black, verify the exact controller/module, SPI pin setup, reset wiring, and initialization sequence before changing other project hardware.
+The exact values and layout will depend on which sensor readings are integrated and verified first.
+
+## Notes
+
+- TFT modules can differ in controller, initialization sequence, colour order, and screen offsets. Confirm the exact controller before treating the driver setup as final.
+- Check the module's own power and backlight requirements before connecting VCC or LED/BL.
+- A lit screen or successful colour fill alone does not verify sensor-data display or complete TFT functionality.
