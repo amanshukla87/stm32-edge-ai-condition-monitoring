@@ -1,187 +1,161 @@
 # STM32-Based Multisensor Industrial Condition Monitoring, Anomaly Detection, and Predictive Maintenance Using TinyML
 
-**BEC 753 – Project I | Electronics Engineering**
+**BEC 753 – Project I | B.Tech Electronics Engineering**
 
-Firmware development on the **STM32 NUCLEO-F446RE / STM32F446RE**, progressing from register-level GPIO and sensor interfacing to a combined multisensor monitoring application.
+This repository follows the firmware development of a multisensor condition-monitoring system built around the **STM32 NUCLEO-F446RE (STM32F446RE)**. It started with small peripheral tests and has gradually grown to include temperature, electrical and motion sensing, motor-speed measurement, serial monitoring, and display experiments.
 
-The repository documents the implemented firmware stages in order. The current verified firmware stage is **MPU6050 integration**. Work is now also underway to integrate a **2.8-inch SPI TFT display** as a larger visual interface. Edge AI inference is not yet part of the firmware.
+I have kept the development stages separate so it is easier to see what has been tested, how the firmware is organized, and what is still being worked on. The current repository includes an integrated multisensor firmware example and a separate TFT display bring-up project. **TinyML inference and predictive-maintenance decisions have not yet been implemented.**
 
-## Hardware
+## Project hardware
 
-- STM32 NUCLEO-F446RE / STM32F446RE
+- STM32 NUCLEO-F446RE development board
 - DS18B20 digital temperature sensor
-- INA219 voltage/current/power monitor
+- INA219 voltage, current and power monitor
 - MPU6050 accelerometer and gyroscope
-- SSD1306 0.96-inch 128×64 I2C OLED
-- 2.8-inch SPI TFT display, 240×320, module marked **“2.8\" TFT SPI 240x320 V1.2”** (integration in progress)
-- External LED
-- Buzzer
-- USB / ST-LINK virtual COM interface
+- N20 geared DC motor with encoder
+- L298N motor driver
+- SSD1306 0.96-inch, 128×64 I2C OLED
+- 2.8-inch, 240×320 SPI TFT module (display bring-up in progress)
+- LED with current-limiting resistor and buzzer
+- USB / ST-LINK virtual COM port for serial monitoring
 
-## Firmware Stages
+## Firmware development stages
 
-| Stage | Firmware | Main function |
+| Stage | Folder | What it covers |
 |---|---|---|
-| 01 | `01-gpio-led-blink` | Register-level GPIO output and LED control |
-| 02 | `02-ds18b20-temperature` | DS18B20 temperature acquisition over 1-Wire |
-| 03 | `03-ds18b20-oled-temperature` | Temperature display on SSD1306 OLED |
-| 04 | `04-ds18b20-oled-buzzer` | Temperature threshold and buzzer indication |
-| 05 | `05-ina219-power-monitoring` | Voltage, current and power measurement |
-| 06 | `06-mpu6050-motion-sensor` | MPU6050 motion sensing with the existing monitoring stack |
+| 01 | `01-gpio-led-blink` | Register-level GPIO configuration and LED control |
+| 02 | `02-ds18b20-temperature` | Temperature acquisition using the 1-Wire protocol |
+| 03 | `03-ds18b20-oled-temperature` | Displaying DS18B20 readings on the SSD1306 OLED |
+| 04 | `04-ds18b20-oled-buzzer` | Temperature threshold indication using a buzzer |
+| 05 | `05-ina219-power-monitoring` | INA219 voltage, current and power measurement |
+| 06 | `06-mpu6050-motion-sensor` | MPU6050 accelerometer and gyroscope data with the existing sensor display/serial setup |
+| 07 | `07-n20-motor-encoder-l298n-oled-uart` | N20 motor control, encoder pulse counting and RPM monitoring |
+| 08 | `08-integrated-multisensor-monitor` | Combined temperature, power, motion and motor-monitoring firmware |
+| 09 | `09-tft-display` | Standalone SPI TFT initialization and colour-fill testing |
 
-The TFT display is being brought up separately before it is added to the integrated application. It is **not yet a completed or verified firmware stage**.
+Each folder represents a development step or a focused hardware test. The later stages build on the earlier work, but a standalone test should not be mistaken for a feature already integrated into the complete application.
 
-Each completed stage is kept as a separate firmware example so the progression from a simple peripheral test to the integrated system can be followed from the source code.
+## Current system overview
 
-## Current Firmware
-
-Stage 06 combines the previously implemented devices:
+The integrated monitoring work brings together the following measurement paths:
 
 ```text
-DS18B20 ────────┐
-INA219 ─────────┤
-MPU6050 ────────┤
-                ▼
-          STM32F446RE
-                │
-        ┌───────┴───────┐
-        ▼               ▼
-   SSD1306 OLED       USART2
-                        │
-                      PuTTY
+ DS18B20 ───────────── Temperature ───────┐
+ INA219 ────────────── Voltage / Current ─┤
+ MPU6050 ───────────── Accel. / Gyro ─────┤
+ N20 + Encoder ─────── Pulse count / RPM ─┤
+                                          ▼
+                                   STM32F446RE
+                                          │
+                              ┌───────────┴───────────┐
+                              ▼                       ▼
+                         SSD1306 OLED             USART2
+                                                      │
+                                                    PuTTY
+
+                  2.8-inch SPI TFT: separate display
+                         bring-up / test stage
 ```
 
-The I2C devices share **I2C1**:
+The integrated firmware source is available in [Stage 08](./firmware/08-integrated-multisensor-monitor/). The motor and encoder test is documented separately in [Stage 07](./firmware/07-n20-motor-encoder-l298n-oled-uart/).
 
-| Device | Interface | Connection / Address |
+## Stage 06: sensor interfaces and connections
+
+The documented Stage 06 setup uses I2C1 for the INA219, SSD1306 OLED and MPU6050. The DS18B20 uses a separate 1-Wire data line.
+
+| Device | Interface | Pin / address |
 |---|---|---|
 | DS18B20 | 1-Wire | PA6 |
-| INA219 | I2C1 | PB8/PB9, address 0x40 |
-| SSD1306 OLED | I2C1 | PB8/PB9, address 0x3C |
-| MPU6050 | I2C1 | PB8/PB9, address 0x68 |
+| INA219 | I2C1 | PB8 (SCL), PB9 (SDA), address 0x40 |
+| SSD1306 OLED | I2C1 | PB8 (SCL), PB9 (SDA), address 0x3C |
+| MPU6050 | I2C1 | PB8 (SCL), PB9 (SDA), address 0x68 |
 | Buzzer | GPIO | PB0 |
-| USART2 | UART | PA2 TX, 115200 baud |
+| USART2 | UART | PA2 (TX), 115200 baud |
 
-The DS18B20 data line uses a **4.7 kΩ pull-up resistor**.
+The DS18B20 data line uses a **4.7 kΩ pull-up resistor**. Check the wiring and logic-voltage requirements of each breakout board before connecting it to the NUCLEO board.
 
-## 2.8-Inch SPI TFT Display — Integration in Progress
+## Stage 07–08: motor and multisensor monitoring
 
-A **2.8-inch, 240×320 SPI TFT module** marked `2.8" TFT SPI 240x320 V1.2` is being evaluated for use as the project's larger display interface. The goal is to display relevant condition-monitoring information from the STM32, such as sensor readings and system status, after the display has been initialized and tested.
+The motor test uses an **N20 geared DC motor with an encoder** and an L298N driver. The firmware counts encoder pulses and calculates an RPM value over a measurement interval. The Stage 07 README records the motor details and notes that the encoder's effective counts per output revolution must be confirmed for the exact motor and counting method.
 
-Current progress:
+Stage 08 brings the sensing and motor-monitoring work into one firmware example. The checked-in source includes routines for DS18B20 temperature acquisition, INA219 measurements, MPU6050 accelerometer/gyroscope reads, OLED output, USART2 reporting, and motor PWM/encoder pulse counting.
 
-- The display module and its labelled connector pins have been inspected.
-- TFT bring-up and driver identification are being investigated.
-- The screen currently remains black with no visible backlight during the initial reset-code test.
-- The display is currently disconnected while its interface, controller compatibility, power and backlight requirements are checked.
+The MPU6050 values are currently handled as raw sensor readings in the documented implementation. More advanced vibration analysis, filtering, feature extraction, and health classification are future work—not completed predictive-maintenance functions.
 
-**Status:** The TFT is not yet operational or integrated with the sensor firmware. The exact display controller and working pin mapping have not yet been confirmed, so no controller-specific support is claimed here. Touchscreen and SD-card connections, if present on the module, are not currently part of the working setup.
+## Stage 09: 2.8-inch SPI TFT display
 
-Next steps are to confirm the module's controller and electrical requirements, verify power and backlight behaviour, establish the SPI and control-pin mapping, run a minimal display test, and then integrate the display with the existing monitoring firmware. The SSD1306 OLED remains the display used by the current verified firmware stage.
+A separate display experiment is underway using the 2.8-inch, 240×320 SPI TFT module marked **“2.8\\" TFT SPI 240x320 V1.2”**. The purpose is to develop a larger local interface for motor and sensor information.
 
-## MPU6050
+The repository currently contains:
+- A standalone TFT test source file in [`complete-code/`](./firmware/09-tft-display/complete-code/).
+- Hardware setup and colour-test photographs in [`images/`](./firmware/09-tft-display/images/).
+- A four-colour display-test video in [`videos/`](./firmware/09-tft-display/videos/).
+- A `Drivers/` folder reserved for display-driver files and documentation.
 
-The current motion-sensing firmware configures the MPU6050 through register-level I2C communication.
+The checked-in standalone test source uses **SPI2** and contains a colour-fill test with an ST7789-style initialization sequence. The exact controller fitted to the display module has not yet been independently confirmed, so this should be treated as an experimental driver configuration rather than confirmed controller identification.
 
-Implemented:
+| TFT signal | STM32 pin | Function |
+|---|---|---|
+| SCK / CLK | PB13 | SPI2 clock |
+| MOSI / SDI | PB15 | SPI2 data to display |
+| MISO / SDO | PB14 | Data from display; not required for the current write-only test |
+| CS | PB12 | Chip select |
+| DC / RS | PC0 | Command / data selection |
+| RESET / RST | PC1 | Display reset |
+| VCC | As supported by the exact module | Power |
+| GND | GND | Common ground |
+| LED / BL | Module-dependent | Backlight; follow the board specifications |
 
-- MPU6050 initialization
-- Accelerometer X/Y/Z acquisition
-- Gyroscope X/Y/Z acquisition
-- Raw internal temperature register acquisition
-- UART output
-- OLED output
-- Integration with DS18B20 and INA219 measurements
+**Current TFT status:** basic colour-fill testing is documented, but the display is not yet part of the integrated multisensor application. The current tracked `complete-code/main.c` is a standalone colour-test program; it should not be taken as evidence that motor or all sensor readings are already being displayed on the TFT. The controller, final electrical requirements and any backlight connection still need to be verified against the actual module.
 
-The current firmware reports MPU6050 accelerometer and gyroscope values as **raw 16-bit readings**. Tilt-angle calculation and higher-level motion features are not currently implemented.
+Next, I will verify the controller and power/backlight requirements, confirm stable SPI operation, test text and numeric rendering, and then move selected sensor and motor values onto the TFT. The SSD1306 OLED remains the display used by the earlier monitoring firmware.
 
-## Firmware Structure
+## Firmware approach and tools
 
-The firmware is organized by responsibility rather than keeping the complete implementation in a single `main.c`.
+Most of the earlier peripheral examples use **C with direct STM32F446RE register access**, rather than STM32 HAL or external sensor libraries. The standalone TFT test is a separate HAL-based SPI experiment, so the repository currently contains both approaches.
 
-Typical stage structure:
+Tools used:
+- **STM32CubeIDE** — firmware editing, building and debugging
+- **ST-LINK** — programming and debugging the NUCLEO board
+- **PuTTY** — viewing USART2 output
+- **Git and GitHub** — source control and project documentation
 
-```text
-main.c
-*.c / *.h driver modules
-README.md
-images/
-video/
-```
+The code is organized into separate source and header files where appropriate, with application logic kept distinct from device-level routines. Some development stages are still represented by a single main source file.
 
-For the integrated Stage 06 firmware:
+## What is implemented and what comes next
 
-```text
-06-mpu6050-motion-sensor/
-├── main.c
-├── delay.c / delay.h
-├── i2c.c / i2c.h
-├── mpu6050.c / mpu6050.h
-├── ina219.c / ina219.h
-├── ds18b20.c / ds18b20.h
-├── onewire.c / onewire.h
-├── oled.c / oled.h
-├── uart.c / uart.h
-├── buzzer.c / buzzer.h
-├── images/
-├── video/
-└── README.md
-```
-
-`main.c` contains the application sequence and coordinates the modules. Device communication and hardware-specific implementation remain in their respective source files.
-
-## Development Approach
-
-The firmware examples use **C and direct STM32F446RE register access**. STM32 HAL and external sensor libraries are not used in these examples.
-
-Main areas covered in the repository:
-
-- GPIO configuration
-- 1-Wire communication
-- I2C1 communication
-- USART2 communication
-- SysTick-based timing
-- Sensor register configuration
-- Sensor data acquisition
-- OLED display control
-- Basic threshold-based indication
-- Modular embedded firmware structure
-
-## Tools
-
-- **STM32CubeIDE v2.2.0** — development, build and debugging
-- **ST-LINK** — programming and debugging
-- **PuTTY** — UART monitoring
-- **Git / GitHub** — version control and documentation
-
-## Current Status
-
-**Current verified firmware stage: multisensor integration through MPU6050.**
-
-Implemented through Stage 06:
-
-- GPIO / LED control
-- DS18B20 temperature measurement
-- SSD1306 OLED display
-- Buzzer indication
-- INA219 voltage, current and power monitoring
+**Implemented / documented in the repository**
+- Register-level GPIO and LED control
+- DS18B20 temperature acquisition
+- SSD1306 OLED output
+- Basic buzzer indication
+- INA219 voltage, current and power reads
 - MPU6050 accelerometer and gyroscope acquisition
-- UART monitoring
-- Modular driver-based firmware structure
+- N20 motor control and encoder pulse counting / RPM calculation
+- USART2 serial monitoring
+- An integrated multisensor firmware example
+- Standalone SPI TFT colour-fill test
 
-**In progress:** bring-up and integration of the 2.8-inch SPI TFT display. The TFT currently has no confirmed working display output; it must pass a standalone test before being integrated into the sensor application.
+**Still in development**
+- Final verification and documentation of the motor encoder calibration
+- Reliable TFT controller identification and display-driver validation
+- TFT text/numeric rendering and integration with sensor data
+- Consistent sensor sampling, filtering and vibration-feature extraction
+- Collection and labelling of operating-condition data
+- Lightweight TinyML model development, quantization and on-device inference
+- Validation of anomaly-detection and predictive-maintenance behaviour
 
-The next development work can build on the verified sensing layer for TFT display bring-up, data collection, signal processing, feature extraction, communication interfaces, and eventually lightweight Edge AI deployment.
+The aim is to develop these capabilities on the STM32 itself. Until the data pipeline, model and on-device inference are implemented and tested, the project should be described as a multisensor monitoring system under development—not as a completed AI predictive-maintenance product.
 
-## Project Information
+## Project information
 
-**Course:** BEC 753 – Project I  
-**Program:** B.Tech Electronics Engineering  
-**Project:** STM32-Based Multisensor Industrial Condition Monitoring, Anomaly Detection, and Predictive Maintenance Using TinyML  
-**Platform:** STM32 NUCLEO-F446RE / STM32F446RE  
-**Repository:** `amanshukla87/stm32-edge-ai-condition-monitoring`
+- **Course:** BEC 753 – Project I
+- **Program:** B.Tech Electronics Engineering
+- **Project:** STM32-Based Multisensor Industrial Condition Monitoring, Anomaly Detection, and Predictive Maintenance Using TinyML
+- **Platform:** STM32 NUCLEO-F446RE / STM32F446RE
+- **Repository:** [amanshukla87/stm32-edge-ai-condition-monitoring](https://github.com/amanshukla87/stm32-edge-ai-condition-monitoring)
 
-## Project Team
+## Project team
 
 - **Aman Shukla**
 - **Govind Shukla**
