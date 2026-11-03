@@ -155,6 +155,12 @@ The aim is to develop these capabilities on the STM32 itself. Until the data pip
 - **Platform:** STM32 NUCLEO-F446RE / STM32F446RE
 - **Repository:** [amanshukla87/stm32-edge-ai-condition-monitoring](https://github.com/amanshukla87/stm32-edge-ai-condition-monitoring)
 
+## Project guide
+
+**Dr. Anupam Soni**  
+Assistant Professor, BRSVBP Rajkiya Engineering College, Basti  
+Ph.D., Indian Institute of Technology (IIT) Kanpur
+
 ## Project team
 
 - **Aman Shukla**
