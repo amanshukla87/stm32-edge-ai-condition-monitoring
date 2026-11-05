@@ -1,17 +1,22 @@
-# 09 — TFT Display
+# 09 — TFT Display Integration
 
-## Current progress
+## Overview
 
-The 2.8-inch SPI TFT module is connected to the STM32 NUCLEO-F446RE. After the initial colour-fill tests, I have progressed to displaying **motor encoder data on the TFT from the STM32 firmware**.
+The TFT display is now fully integrated into the STM32-based motor monitoring system. What started as a basic colour-fill test has developed into a working on-device interface that brings the system's sensor readings together on one screen.
 
-This is an important step toward the project's local motor-monitoring interface. The display work is still in progress; the next stages are to refine the layout and integrate additional sensor readings as they are tested.
+The 2.8-inch SPI TFT is driven by the **ST7789 display controller** and connected directly to the **STM32 NUCLEO-F446RE**. The STM32 firmware now displays the motor and multisensor data on the TFT, making it easier to monitor the system locally without relying on a separate computer or cloud dashboard.
 
-## Hardware and connections
+## Hardware used
 
 - STM32 NUCLEO-F446RE
-- 2.8-inch SPI TFT display module (240 × 320; confirm the exact controller against the module)
-- Motor and encoder used for the current test
-- Jumper wires
+- 2.8-inch SPI TFT display (240 × 320, ST7789 controller)
+- Motor with encoder
+- DS18B20 temperature sensor
+- INA219 voltage and current sensor
+- MPU6050 accelerometer and gyroscope for vibration-related measurements
+- Jumper wires and required connections
+
+## TFT pin connections
 
 | TFT signal | STM32 pin | Purpose |
 |---|---|---|
@@ -19,36 +24,47 @@ This is an important step toward the project's local motor-monitoring interface.
 | GND | GND | Common ground |
 | SCK / CLK | PB13 | SPI2 clock |
 | SDI / MOSI | PB15 | SPI2 data to display |
-| SDO / MISO | PB14 | Display data output; may not be needed for write-only tests |
+| SDO / MISO | PB14 | Display data output; may not be required for write-only operation |
 | CS | PB12 | Display chip select |
 | DC / RS | PC0 | Command/data selection |
 | RESET / RST | PC1 | Display reset |
 | LED / BL | Module-dependent | Backlight; follow the display board's specifications |
 
-## Test evidence
+## Data displayed on the TFT
 
-- [Hardware setup and screen photos](./images/)
-- [Four-colour display test video](./videos/06-tft-four-colour-display-test.mp4)
-- [Complete TFT test firmware](./complete-code/)
+The display brings the main live monitoring values together in one interface:
 
-The existing photos and video record the hardware setup and colour-test stage. Add a screenshot or video of the motor encoder data on the TFT to this folder when available, so the latest functionality is documented alongside the earlier tests.
+- **Motor speed:** encoder-based RPM reading
+- **Temperature:** DS18B20 sensor reading
+- **Electrical measurements:** INA219 voltage, current and power readings
+- **Vibration-related data:** MPU6050 accelerometer/gyroscope readings processed by the firmware
 
-## What is working now
+These readings are acquired and handled by the STM32 firmware before being presented on the display. The TFT therefore acts as the system's local monitoring interface.
 
-- TFT module connected to the STM32 NUCLEO-F446RE over SPI2.
-- Basic colour-fill tests performed.
-- Motor encoder data displayed on the TFT from the STM32 firmware.
+## Current implementation status
 
-## Next steps
+- ST7789-based TFT initialised and communicating with the STM32 over SPI2.
+- Initial colour and display tests completed.
+- TFT driver integrated into the project firmware.
+- Motor encoder data displayed on the screen.
+- Temperature, electrical and vibration sensor data integrated into the TFT monitoring interface.
+- Main monitoring values brought together on a single display.
 
-1. Verify that the displayed encoder value updates consistently with motor movement and matches the firmware's measured value.
-2. Improve text positioning, readability, screen layout, and refresh behaviour.
-3. Add other sensor readings, such as temperature, current, voltage, or vibration, only after each reading is integrated and verified in firmware.
-4. Build a compact motor-condition monitoring screen with clear labels and units.
-5. Capture updated photos or a short video showing the motor encoder data on the TFT.
+## Test evidence and source code
+
+- [Hardware setup and display photos](./images/)
+- [Four-colour TFT test video](./videos/06-tft-four-colour-display-test.mp4)
+- [Complete ST7789 TFT test firmware](./complete-code/)
+- [TFT display driver documentation](./Drivers/)
+
+The earlier colour-test evidence documents the initial bring-up process. The completed firmware and current hardware setup demonstrate the progression from a display test to an integrated monitoring interface.
 
 ## Notes
 
-- TFT modules can differ in controller, initialization sequence, colour order, and screen offsets. Confirm the exact controller before treating the driver setup as final.
-- Check the module's power and backlight requirements before connecting VCC or LED/BL.
-- Displaying motor encoder data is a milestone, but the full multisensor monitoring interface and predictive-maintenance functionality remain separate integration tasks.
+- The display uses the ST7789 controller. Its initialisation sequence, colour format and screen offsets should match the specific TFT module.
+- TFT power and backlight connections are module-dependent; follow the display board's specifications.
+- The TFT integration completes the local display interface. Further work on data validation, presentation and the project's anomaly-detection and predictive-maintenance features is tracked separately.
+
+## Next improvements
+
+The display integration is complete. Future refinements can focus on improving the screen layout and readability, making updates smoother, and presenting additional diagnostic information as the firmware evolves.
